@@ -12,7 +12,7 @@ const activeDaySchema = new mongoose.Schema(
       default: 1,
     },
     date: {
-      type: string,
+      type: String,
       required: true,
     },
   },

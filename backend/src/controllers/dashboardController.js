@@ -344,7 +344,40 @@ exports.rejectChallengeRequest = async (req, res) => {
   }
 };
 
+// Get Challenge Request
+
+exports.getChallengeRequest = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const challengeRequests = await ChallengeRequest.find({ toUser: userId });
+    res.status(200).json(challengeRequests);
+  } catch (error) {
+    console.log("Error in getChallengeRequest controller", error.message);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+};
+
 // Get active days (heatmap ke liye)
+
+exports.updateActiveDays = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const date = new Date().toISOString().split("T")[0] ;
+
+    const currentDayRecord = await ActiveDay.findOneAndUpdate(
+      { userId, date },
+      {
+        $inc: { submissionCount: 1 },
+        $setOnInsert: { userId, date },
+      },
+      { upsert: true , new: true },
+    );
+    res.status(201).send(currentDayRecord) ;
+  } catch (error) {
+    console.log("Error in updateActiveDays controller", error.message);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+};
 
 exports.getActiveDays = async (req, res) => {
   try {
