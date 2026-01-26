@@ -11,7 +11,7 @@ const questionSchema = new mongoose.Schema(
       default: [],
     },
     theme: {
-      type: mongoose.Schema.Types.ObjectId,
+      type: String,
       ref: "Theme",
     },
     statement: {
@@ -23,8 +23,7 @@ const questionSchema = new mongoose.Schema(
       default: [],
     },
     preTest: {
-      type: Map,
-      of: Map,
+      type : String
     },
     expectedOutput: {
       type: String,
