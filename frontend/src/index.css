@@ -1,0 +1,66 @@
+@import "tailwindcss";
+
+.intro-wrapper {
+    position: fixed;
+    inset: 0;
+    background: black;
+    overflow: hidden;
+    z-index: 9999;
+  }
+  
+  .glitch-bg {
+    position: absolute;
+    inset: 0;
+  }
+  
+  .intro-text {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+  
+    font-size: clamp(2.5rem, 6vw, 5rem);
+    font-weight: 800;
+    letter-spacing: 0.1em;
+    color: white;
+    z-index: 2;
+  
+    animation: fadeUp 1s ease-out forwards;
+  }
+  
+  @keyframes fadeUp {
+    from {
+      opacity: 0;
+      transform: translateY(30px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  
+  /* White expanding circle */
+  .circle {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 20px;
+    height: 20px;
+    background: rgb(0, 0, 0);
+    border-radius: 50%;
+    transform: translate(-50%, -50%) scale(0);
+    z-index: 3;
+  }
+  
+  .circle.expand {
+    animation: expandCircle 1s ease-in forwards;
+  }
+  
+  @keyframes expandCircle {
+    to {
+      transform: translate(-50%, -50%) scale(150);
+    }
+  }
+  
