@@ -12,6 +12,7 @@ require("./src/libs/db.js");
 
 const authRoutes = require("./src/routes/authRoutes");
 const { uploadAvatar } = require("./src/controllers/uploadController.js");
+const { addQuestion } = require("./src/controllers/adminController.js") ;
 
 const PORT = process.env.PORT || 5000;
 
@@ -27,7 +28,12 @@ app.use(
 );
 
 app.use("/api/auth", authRoutes);
+<<<<<<< HEAD
 app.post("/api/upload/avatar", protect, uploadAvatar);
+=======
+app.post("/api/upload/avatar", protect , uploadAvatar) ;
+app.post("/api/upload/question" , protect , addQuestion) ;
+>>>>>>> 46b213d1cf84a68550798a6f24f3db1a29aa6943
 
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
