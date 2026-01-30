@@ -1,7 +1,7 @@
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 
-const Dashboard = () => {
+const Dashboard = ({ user , setUser }) => {
   const navigate = useNavigate();
 
   const handleLogout = async () => {
@@ -9,9 +9,11 @@ const Dashboard = () => {
       await axios.post(
         "http://localhost:5000/api/auth/logout",
         {},
-        { withCredentials: true }
+        { withCredentials: true },
       );
+
       localStorage.removeItem("user");
+      setUser(null) ;
       navigate("/login");
     } catch (err) {
       console.error("Logout failed:", err);

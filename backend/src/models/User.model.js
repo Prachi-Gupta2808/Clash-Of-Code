@@ -56,7 +56,7 @@ const userSchema = new mongoose.Schema(
     },
     rating: {
       type: Number,
-      default: 1200,
+      default: 800,
     },
     title: {
       type: String,
@@ -71,12 +71,12 @@ const userSchema = new mongoose.Schema(
     stats: statsSchema,
     avatar: {
       type: String,
-      default: "https://riqieznxfrbdfcyfoxss.supabase.co/storage/v1/object/public/avatars/defaultPic.webp"
+      default: "https://riqieznxfrbdfcyfoxss.supabase.co/storage/v1/object/public/avatars/defaultPic.webp",
     },
-    isAdmin : {
+    isAdmin: {
       type: Boolean,
-      default: false
-    }
+      default: false,
+    },
   },
   {
     timestamps: true,
@@ -98,5 +98,5 @@ userSchema.methods.matchPassword = async function (enteredPassword) {
   return bcrypt.compare(enteredPassword, this.password);
 };
 
-const userModel = mongoose.model("User" , userSchema) ;
-module.exports = userModel ;
+const userModel = mongoose.model("User", userSchema);
+module.exports = userModel;

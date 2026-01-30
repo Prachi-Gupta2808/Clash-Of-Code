@@ -46,7 +46,7 @@ function App() {
           isLoggedIn ? <Navigate to="/" /> : <SignUp setUser={setUser} />
         }
       />
-      <Route path="/dashboard" element={<Dashboard user={user} />} />
+      <Route path="/dashboard" element={<Dashboard user={user} setUser={setUser} />} />
     </Routes>
   );
 }

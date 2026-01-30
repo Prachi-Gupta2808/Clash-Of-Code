@@ -4,11 +4,10 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Vortex } from "../components/ui/vortex";
 
-const Login = () => {
+const Login = ({ setUser }) => {
   const navigate = useNavigate();
   const [formData, setFormData] = useState({ email: "", password: "" });
   const [loading, setLoading] = useState(false);
-  const [user, setUser] = useState(null);
 
   const handleChange = (e) => {
     setFormData((prev) => ({
@@ -46,8 +45,8 @@ const Login = () => {
 
       await axios.post(
         "http://localhost:5000/api/auth/google",
-        { credential: credentialResponse.credential },
-        { withCredentials: true }
+        { token: credentialResponse.credential }, // ✅ FIX HERE
+        { withCredentials: true },
       );
 
       const res = await axios.get("http://localhost:5000/api/auth/me", {
@@ -73,7 +72,7 @@ const Login = () => {
       </div>
 
       <div className="relative z-10 flex items-center justify-center h-full">
-        <div className="bg-black/30 backdrop-blur-[12px] border border-white/20 text-white p-10 rounded-xl max-w-md w-full space-y-6 shadow-lg flex flex-col items-center">
+        <div className="bg-black/30 backdrop-blur-md border border-white/20 text-white p-10 rounded-xl max-w-md w-full space-y-6 shadow-lg flex flex-col items-center">
           <h2 className="text-3xl font-bold text-center text-white">Login</h2>
 
           <form onSubmit={handleSubmit} className="w-full flex flex-col gap-4">
