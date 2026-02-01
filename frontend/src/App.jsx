@@ -1,7 +1,9 @@
 import { useEffect, useState } from "react";
 import { Navigate, Route, Routes } from "react-router-dom";
 import { getMe } from "./api/auth";
+import GlobalCursor from "./components/GlobalCursor";
 import IntroLoader from "./components/IntroLoader";
+import AppLayout from "./layouts/AppLayout";
 import Dashboard from "./pages/Dashboard";
 import Home from "./pages/Home";
 import Login from "./pages/Login";
@@ -34,20 +36,32 @@ function App() {
   const isLoggedIn = Boolean(user);
 
   return (
-    <Routes>
-      <Route path="/" element={<Home user={user} />} />
-      <Route
-        path="/login"
-        element={isLoggedIn ? <Navigate to="/" /> : <Login setUser={setUser} />}
-      />
-      <Route
-        path="/signup"
-        element={
-          isLoggedIn ? <Navigate to="/" /> : <SignUp setUser={setUser} />
-        }
-      />
-      <Route path="/dashboard" element={<Dashboard user={user} setUser={setUser} />} />
-    </Routes>
+    <>
+      <GlobalCursor />
+      <Routes>
+        <Route element={<AppLayout />}>
+          {/* ✅ Pass setUser to Home */}
+          <Route path="/" element={<Home user={user} setUser={setUser} />} />
+
+          <Route
+            path="/login"
+            element={
+              isLoggedIn ? <Navigate to="/" /> : <Login setUser={setUser} />
+            }
+          />
+          <Route
+            path="/signup"
+            element={
+              isLoggedIn ? <Navigate to="/" /> : <SignUp setUser={setUser} />
+            }
+          />
+          <Route
+            path="/dashboard"
+            element={<Dashboard user={user} setUser={setUser} />}
+          />
+        </Route>
+      </Routes>
+    </>
   );
 }
 

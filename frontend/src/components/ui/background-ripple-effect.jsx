@@ -1,11 +1,11 @@
-"use client";;
-import React, { useMemo, useRef, useState } from "react";
+"use client";
 import { cn } from "@/lib/utils";
+import { useMemo, useRef, useState } from "react";
 
 export const BackgroundRippleEffect = ({
   rows = 8,
   cols = 27,
-  cellSize = 56
+  cellSize = 56,
 }) => {
   const [clickedCell, setClickedCell] = useState(null);
   const [rippleKey, setRippleKey] = useState(0);
@@ -18,10 +18,10 @@ export const BackgroundRippleEffect = ({
         "absolute inset-0 h-full w-full",
         "[--cell-border-color:var(--color-neutral-300)] [--cell-fill-color:var(--color-neutral-100)] [--cell-shadow-color:var(--color-neutral-500)]",
         "dark:[--cell-border-color:var(--color-neutral-700)] dark:[--cell-fill-color:var(--color-neutral-900)] dark:[--cell-shadow-color:var(--color-neutral-800)]"
-      )}>
+      )}
+    >
       <div className="relative h-auto w-auto overflow-hidden">
-        <div
-          className="pointer-events-none absolute inset-0 z-[2] h-full w-full overflow-hidden" />
+        <div className="pointer-events-none absolute inset-0 z-[2] h-full w-full overflow-hidden" />
         <DivGrid
           key={`base-${rippleKey}`}
           className="mask-radial-from-20% mask-radial-at-top opacity-600"
@@ -35,7 +35,8 @@ export const BackgroundRippleEffect = ({
             setClickedCell({ row, col });
             setRippleKey((k) => k + 1);
           }}
-          interactive />
+          interactive
+        />
       </div>
     </div>
   );
@@ -47,12 +48,15 @@ const DivGrid = ({
   cols = 30,
   cellSize = 56,
   borderColor = "#3f3f46",
-  fillColor = "rgba(14,165,233,0.3)",
+  fillColor = "#F2613F",
   clickedCell = null,
   onCellClick = () => {},
-  interactive = true
+  interactive = true,
 }) => {
-  const cells = useMemo(() => Array.from({ length: rows * cols }, (_, idx) => idx), [rows, cols]);
+  const cells = useMemo(
+    () => Array.from({ length: rows * cols }, (_, idx) => idx),
+    [rows, cols]
+  );
 
   const gridStyle = {
     display: "grid",
@@ -96,7 +100,8 @@ const DivGrid = ({
             }}
             onClick={
               interactive ? () => onCellClick?.(rowIdx, colIdx) : undefined
-            } />
+            }
+          />
         );
       })}
     </div>
