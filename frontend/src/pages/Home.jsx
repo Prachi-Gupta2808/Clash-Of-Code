@@ -7,12 +7,15 @@ import { useEffect, useRef, useState } from "react";
 import { FaPlay } from "react-icons/fa6";
 import { useNavigate } from "react-router-dom";
 import "./HomePage.css";
+import { useAuth } from "@/auth/AuthContext";
+import { logout } from "../api/auth";
 
-const Home = ({ user, setUser }) => {
+const Home = () => {
   const navigate = useNavigate();
+  const { user, setUser } = useAuth();
+
   const isLoggedIn = Boolean(user);
 
-  // Dropdown state
   const [profileOpen, setProfileOpen] = useState(false);
   const profileRef = useRef(null);
 
@@ -30,13 +33,7 @@ const Home = ({ user, setUser }) => {
   // 🔴 LOGOUT
   const handleLogout = async () => {
     try {
-      await axios.post(
-        "http://localhost:5000/api/auth/logout",
-        {},
-        { withCredentials: true }
-      );
-
-      localStorage.removeItem("user");
+      await logout();
       setUser(null);
       setProfileOpen(false);
       navigate("/login");

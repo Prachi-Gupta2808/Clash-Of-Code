@@ -19,24 +19,23 @@ import MatchSection from "./DashboardSections/MatchSection";
 import NotificationSection from "./DashboardSections/NotificationSection";
 import ProfileSection from "./DashboardSections/ProfileSection";
 import { MdLogout } from "react-icons/md";
+import { useAuth } from "@/auth/AuthContext";
+import { logout } from "../api/auth";
 
-const Dashboard = ({ user, setUser }) => {
+const Dashboard = () => {
+  const { user , setUser } = useAuth() ;
   const navigate = useNavigate();
   const [open, setOpen] = useState(false);
   const [activeSection, setActiveSection] = useState("profile");
 
   const handleLogout = async () => {
     try {
-      await axios.post(
-        "http://localhost:5000/api/auth/logout",
-        {},
-        { withCredentials: true }
-      );
-      localStorage.removeItem("user");
+      await logout();
       setUser(null);
       navigate("/login");
     } catch (err) {
       console.error("Logout failed:", err);
+      alert("Logout failed. Please try again.");
     }
   };
 

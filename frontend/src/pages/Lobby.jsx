@@ -1,9 +1,24 @@
-import React from 'react'
+import React, { useEffect, useState } from "react";
+import { useParams } from "react-router-dom";
+import { io } from "socket.io-client"
+
+const socket = io("http://localhost:3000") ;
 
 const Lobby = () => {
-  return (
-    <div>Lobby</div>
-  )
-}
+  const { mode } = useParams() ;
+  const [status , setStatus] = useState("WAITING") ;
 
-export default Lobby
+  useEffect(() => {
+    socket.emit("PLAY_NOW" , { mode }) ;
+  
+  }, [])
+  
+
+  return (
+    <div className="w-full h-screen flex justify-center items-center text-white">
+      
+    </div>
+  );
+};
+
+export default Lobby;

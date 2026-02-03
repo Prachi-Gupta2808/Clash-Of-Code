@@ -9,64 +9,47 @@ import Home from "./pages/Home";
 import Login from "./pages/Login";
 import SignUp from "./pages/SignUp";
 import ThemeSelect from "./pages/ThemeSelect";
+import Lobby from "./pages/Lobby";
+import { useAuth } from "./auth/AuthContext";
 
 function App() {
-  const [loading, setLoading] = useState(true);
-  const [user, setUser] = useState(null);
-  const [fetched, setFetched] = useState(false);
+  const { user, loading } = useAuth() ;
 
-  useEffect(() => {
-    const fetchUser = async () => {
-      try {
-        const res = await getMe();
-        setUser(res.data.user);
-      } catch {
-        setUser(null);
-      } finally {
-        setFetched(true);
-      }
-    };
-
-    fetchUser();
-  }, []);
-
-  if (loading || !fetched) {
-    return <IntroLoader onFinish={() => setLoading(false)} />;
-  }
+  if (loading) return <IntroLoader />;
 
   const isLoggedIn = Boolean(user);
-
+  
   return (
     <>
       <GlobalCursor />
       <Routes>
         <Route element={<AppLayout />}>
           {/* ✅ Pass setUser to Home */}
-          <Route path="/" element={<Home user={user} setUser={setUser} />} />
+          <Route path="/" element={<Home />} />
 
           <Route
             path="/login"
             element={
-              isLoggedIn ? <Navigate to="/" /> : <Login setUser={setUser} />
+              isLoggedIn ? <Navigate to="/" /> : <Login />
             }
           />
           <Route
             path="/signup"
             element={
-              isLoggedIn ? <Navigate to="/" /> : <SignUp setUser={setUser} />
+              isLoggedIn ? <Navigate to="/" /> : <SignUp />
             }
           />
           <Route
             path="/dashboard"
-            element={<Dashboard user={user} setUser={setUser} />}
+            element={<Dashboard />}
           />
           <Route
-            path="/theme"
-            element={<ThemeSelect user={user} setUser={setUser} />}
+            path="/play"
+            element={<ThemeSelect />}
           />
           <Route
             path="/lobby/:mode"
-            element={<ThemeSelect user={user} setUser={setUser} />}
+            element={<Lobby />}
           />
         </Route>
       </Routes>

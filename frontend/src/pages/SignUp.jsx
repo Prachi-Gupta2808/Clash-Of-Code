@@ -1,11 +1,14 @@
 import { GoogleLogin } from "@react-oauth/google";
-import axios from "axios";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Vortex } from "../components/ui/vortex";
+import { signup, googleAuth, getMe } from "../api/auth";
+import { useAuth } from "../auth/AuthContext";
 
-const SignUp = ({ setUser }) => {
+const SignUp = () => {
   const navigate = useNavigate();
+  const { setUser } = useAuth();
+
   const [formData, setFormData] = useState({
     fullName: "",
     email: "",
@@ -24,15 +27,17 @@ const SignUp = ({ setUser }) => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
-    try {
-      const res = await axios.post(
-        "http://localhost:5000/api/auth/signup",
-        formData,
-        { withCredentials: true }
-      );
 
+    try {
+      // 1️⃣ signup (cookie set)
+      await signup(formData);
+
+      // 2️⃣ get verified user
+      const res = await getMe();
+
+      // 3️⃣ update auth context
       setUser(res.data.user);
-      localStorage.setItem("user", JSON.stringify(res.data.user));
+
       navigate("/");
     } catch (err) {
       console.error(err.response?.data);
@@ -44,16 +49,19 @@ const SignUp = ({ setUser }) => {
 
   const handleGoogleSuccess = async (credentialResponse) => {
     try {
-      if (!credentialResponse.credential) return alert("Google login failed");
+      if (!credentialResponse.credential) {
+        return alert("Google signup failed");
+      }
 
-      const res = await axios.post(
-        "http://localhost:5000/api/auth/google",
-        { token: credentialResponse.credential },
-        { withCredentials: true }
-      );
+      // 1️⃣ google auth
+      await googleAuth(credentialResponse.credential);
 
+      // 2️⃣ get verified user
+      const res = await getMe();
+
+      // 3️⃣ update context
       setUser(res.data.user);
-      localStorage.setItem("user", JSON.stringify(res.data.user));
+
       navigate("/");
     } catch (err) {
       console.error(err.response?.data);
@@ -72,7 +80,7 @@ const SignUp = ({ setUser }) => {
 
       <div className="relative z-10 flex items-center justify-center h-full">
         <div className="bg-black/30 backdrop-blur-md border border-white/20 text-white p-10 rounded-xl max-w-md w-full space-y-4 shadow-lg flex flex-col items-center">
-          <h2 className="text-3xl font-bold text-center text-white">Sign Up</h2>
+          <h2 className="text-3xl font-bold text-center">Sign Up</h2>
 
           <form onSubmit={handleSubmit} className="w-full flex flex-col gap-4">
             <input
@@ -81,7 +89,7 @@ const SignUp = ({ setUser }) => {
               onChange={handleChange}
               type="text"
               placeholder="Full Name"
-              className="w-full px-4 py-2 rounded-md bg-gray-800/50 focus:outline-none focus:ring-2 focus:ring-[#F2613F]"
+              className="w-full px-4 py-2 rounded-md bg-gray-800/50 focus:ring-2 focus:ring-[#F2613F]"
               required
             />
             <input
@@ -90,7 +98,7 @@ const SignUp = ({ setUser }) => {
               onChange={handleChange}
               type="email"
               placeholder="Email"
-              className="w-full px-4 py-2 rounded-md bg-gray-800/50 focus:outline-none focus:ring-2 focus:ring-[#F2613F]"
+              className="w-full px-4 py-2 rounded-md bg-gray-800/50 focus:ring-2 focus:ring-[#F2613F]"
               required
             />
             <input
@@ -99,7 +107,7 @@ const SignUp = ({ setUser }) => {
               onChange={handleChange}
               type="text"
               placeholder="Username"
-              className="w-full px-4 py-2 rounded-md bg-gray-800/50 focus:outline-none focus:ring-2 focus:ring-[#F2613F]"
+              className="w-full px-4 py-2 rounded-md bg-gray-800/50 focus:ring-2 focus:ring-[#F2613F]"
               required
             />
             <input
@@ -108,33 +116,31 @@ const SignUp = ({ setUser }) => {
               onChange={handleChange}
               type="password"
               placeholder="Password"
-              className="w-full px-4 py-2 rounded-md bg-gray-800/50 focus:outline-none focus:ring-2 focus:ring-[#F2613F]"
+              className="w-full px-4 py-2 rounded-md bg-gray-800/50 focus:ring-2 focus:ring-[#F2613F]"
               required
             />
             <button
               type="submit"
               disabled={loading}
-              className="w-full bg-[#F2613F] hover:bg-[#9B3922] py-2 rounded-md font-semibold transition-colors disabled:opacity-50"
+              className="w-full bg-[#F2613F] hover:bg-[#9B3922] py-2 rounded-md font-semibold disabled:opacity-50"
             >
               {loading ? "Creating Account..." : "Sign Up"}
             </button>
           </form>
 
-          <div className="w-full flex justify-center mt-2">
-            <GoogleLogin
-              onSuccess={handleGoogleSuccess}
-              onError={() => alert("Google signup failed")}
-              theme="filled_black"
-              size="large"
-              width="320"
-            />
-          </div>
+          <GoogleLogin
+            onSuccess={handleGoogleSuccess}
+            onError={() => alert("Google signup failed")}
+            theme="filled_black"
+            size="large"
+            width="320"
+          />
 
-          <p className="text-sm text-center text-gray-400 mt-4">
+          <p className="text-sm text-center text-gray-400">
             Already have an account?{" "}
             <span
               onClick={() => navigate("/login")}
-              className="text-[#F2613F] hover:text-[#9B3922] cursor-pointer font-medium"
+              className="text-[#F2613F] cursor-pointer font-medium"
             >
               Log in
             </span>

@@ -1,11 +1,14 @@
 import { GoogleLogin } from "@react-oauth/google";
-import axios from "axios";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Vortex } from "../components/ui/vortex";
+import { login, googleAuth, getMe } from "../api/auth";
+import { useAuth } from "../auth/AuthContext";
 
-const Login = ({ setUser }) => {
+const Login = () => {
   const navigate = useNavigate();
+  const { setUser } = useAuth();
+
   const [formData, setFormData] = useState({ email: "", password: "" });
   const [loading, setLoading] = useState(false);
 
@@ -19,17 +22,17 @@ const Login = ({ setUser }) => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
+
     try {
-      await axios.post("http://localhost:5000/api/auth/login", formData, {
-        withCredentials: true,
-      });
+      // 1️⃣ login (cookie set by backend)
+      await login(formData);
 
-      const res = await axios.get("http://localhost:5000/api/auth/me", {
-        withCredentials: true,
-      });
+      // 2️⃣ get verified user
+      const res = await getMe();
 
+      // 3️⃣ update AuthContext
       setUser(res.data.user);
-      localStorage.setItem("user", JSON.stringify(res.data.user));
+
       navigate("/");
     } catch (err) {
       console.error(err.response?.data);
@@ -41,20 +44,19 @@ const Login = ({ setUser }) => {
 
   const handleGoogleLogin = async (credentialResponse) => {
     try {
-      if (!credentialResponse.credential) return alert("Google login failed");
+      if (!credentialResponse.credential) {
+        return alert("Google login failed");
+      }
 
-      await axios.post(
-        "http://localhost:5000/api/auth/google",
-        { token: credentialResponse.credential }, // ✅ FIX HERE
-        { withCredentials: true },
-      );
+      // 1️⃣ google auth
+      await googleAuth(credentialResponse.credential);
 
-      const res = await axios.get("http://localhost:5000/api/auth/me", {
-        withCredentials: true,
-      });
+      // 2️⃣ get verified user
+      const res = await getMe();
 
+      // 3️⃣ update context
       setUser(res.data.user);
-      localStorage.setItem("user", JSON.stringify(res.data.user));
+
       navigate("/");
     } catch (err) {
       console.error(err.response?.data);
@@ -73,7 +75,7 @@ const Login = ({ setUser }) => {
 
       <div className="relative z-10 flex items-center justify-center h-full">
         <div className="bg-black/30 backdrop-blur-md border border-white/20 text-white p-10 rounded-xl max-w-md w-full space-y-6 shadow-lg flex flex-col items-center">
-          <h2 className="text-3xl font-bold text-center text-white">Login</h2>
+          <h2 className="text-3xl font-bold text-center">Login</h2>
 
           <form onSubmit={handleSubmit} className="w-full flex flex-col gap-4">
             <input
@@ -82,7 +84,7 @@ const Login = ({ setUser }) => {
               placeholder="Email"
               value={formData.email}
               onChange={handleChange}
-              className="w-full px-4 py-2 rounded-md bg-gray-800/50 focus:outline-none focus:ring-2 focus:ring-[#F2613F]"
+              className="w-full px-4 py-2 rounded-md bg-gray-800/50 focus:ring-2 focus:ring-[#F2613F]"
               required
             />
             <input
@@ -91,33 +93,31 @@ const Login = ({ setUser }) => {
               placeholder="Password"
               value={formData.password}
               onChange={handleChange}
-              className="w-full px-4 py-2 rounded-md bg-gray-800/50 focus:outline-none focus:ring-2 focus:ring-[#F2613F]"
+              className="w-full px-4 py-2 rounded-md bg-gray-800/50 focus:ring-2 focus:ring-[#F2613F]"
               required
             />
             <button
               type="submit"
-              className="w-full bg-[#F2613F] hover:bg-[#9B3922] py-2 rounded-md font-semibold transition-colors"
+              className="w-full bg-[#F2613F] hover:bg-[#9B3922] py-2 rounded-md font-semibold"
               disabled={loading}
             >
               {loading ? "Logging in..." : "Login"}
             </button>
           </form>
 
-          <div className="w-full flex justify-center mt-2">
-            <GoogleLogin
-              onSuccess={handleGoogleLogin}
-              onError={() => alert("Google login failed")}
-              theme="filled_black"
-              size="large"
-              width="320"
-            />
-          </div>
+          <GoogleLogin
+            onSuccess={handleGoogleLogin}
+            onError={() => alert("Google login failed")}
+            theme="filled_black"
+            size="large"
+            width="320"
+          />
 
-          <p className="text-sm text-center text-gray-400 mt-4">
+          <p className="text-sm text-center text-gray-400">
             New here?{" "}
             <span
               onClick={() => navigate("/signup")}
-              className="text-[#F2613F] hover:text-[#9B3922] cursor-pointer font-medium"
+              className="text-[#F2613F] cursor-pointer font-medium"
             >
               Create an account
             </span>
