@@ -7,12 +7,9 @@ const API = axios.create({
 
 export const signup = (data) => API.post("/auth/signup", data);
 export const login = (data) => API.post("/auth/login", data);
-export const googleAuth = (credential) =>
-  API.post("/auth/google", { credential });
+export const googleAuth = (credential) => API.post("/auth/google", { token : credential });
 export const getMe = () => API.get("/auth/me");
 export const logout = () => API.post("/auth/logout");
-
-/* ================= FRIENDS ================= */
 
 export const getFriends = () => API.get("/dashboard/friends");
 

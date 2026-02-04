@@ -12,6 +12,7 @@ import { FaPlay } from "react-icons/fa6";
 import { useNavigate } from "react-router-dom";
 import { logout } from "../api/auth";
 import "./HomePage.css";
+import { socket } from "@/components/socket/socket";
 
 const Home = () => {
   const navigate = useNavigate();
@@ -39,6 +40,7 @@ const Home = () => {
       await logout();
       setUser(null);
       setProfileOpen(false);
+      socket.disconnect() ;
       navigate("/login");
     } catch (err) {
       console.error("Logout failed:", err);

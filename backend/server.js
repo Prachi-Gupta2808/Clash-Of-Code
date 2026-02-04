@@ -1,43 +1,26 @@
-const dotenv = require("dotenv");
-dotenv.config();
-
-const express = require("express");
-const cookieParser = require("cookie-parser");
-const cors = require("cors");
-const { protect } = require("./src/middlewares/authMiddleware.js");
-
-const app = express();
-
-require("./src/libs/db.js");
-
-const authRoutes = require("./src/routes/authRoutes");
-const { uploadAvatar } = require("./src/controllers/uploadController.js");
-const { addQuestion } = require("./src/controllers/adminController.js");
-const dashboardRoutes = require("./src/routes/dashboardRoutes");
+const http = require("http");
+const { Server } = require("socket.io");
+const app = require("./app");
+const initSockets = require("./src/sockets/index");
+const { startMatchmaking } = require("./src/sockets/scheduler");
 
 const PORT = process.env.PORT || 5000;
 
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
-app.use(cookieParser());
+// shared HTTP server
+const server = http.createServer(app);
 
-app.use((req, res, next) => {
-  res.setHeader("Cross-Origin-Opener-Policy", "same-origin-allow-popups");
-  next();
-});
-
-app.use(
-  cors({
+// attach socket.io
+const io = new Server(server, {
+  cors: {
     origin: "http://localhost:5173",
     credentials: true,
-  })
-);
+  },
+});
 
-app.use("/api/auth", authRoutes);
-app.post("/api/upload/avatar", protect, uploadAvatar);
-app.post("/api/upload/question", protect, addQuestion);
-app.use("/api/dashboard", dashboardRoutes);
+// initialize socket logic
+initSockets(io) ;
+startMatchmaking(io) ;
 
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
+server.listen(PORT, () => {
+  console.log(`Server running on port ${PORT} ✅`);
 });

@@ -21,6 +21,7 @@ import ProfileSection from "./DashboardSections/ProfileSection";
 import { MdLogout } from "react-icons/md";
 import { useAuth } from "@/auth/AuthContext";
 import { logout } from "../api/auth";
+import { socket } from "@/components/socket/socket";
 
 const Dashboard = () => {
   const { user , setUser } = useAuth() ;
@@ -33,6 +34,7 @@ const Dashboard = () => {
       await logout();
       setUser(null);
       navigate("/login");
+      socket.disconnect() ;
     } catch (err) {
       console.error("Logout failed:", err);
       alert("Logout failed. Please try again.");

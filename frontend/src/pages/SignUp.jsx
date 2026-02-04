@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { Vortex } from "../components/ui/vortex";
 import { signup, googleAuth, getMe } from "../api/auth";
 import { useAuth } from "../auth/AuthContext";
+import { socket } from "@/components/socket/socket";
 
 const SignUp = () => {
   const navigate = useNavigate();
@@ -61,7 +62,7 @@ const SignUp = () => {
 
       // 3️⃣ update context
       setUser(res.data.user);
-
+      socket.connect() ;
       navigate("/");
     } catch (err) {
       console.error(err.response?.data);

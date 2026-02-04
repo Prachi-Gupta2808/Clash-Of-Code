@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { getMe, googleAuth, login } from "../api/auth";
 import { useAuth } from "../auth/AuthContext";
 import { Vortex } from "../components/ui/vortex";
+import { socket } from "@/components/socket/socket";
 
 const Login = () => {
   const navigate = useNavigate();
@@ -32,6 +33,7 @@ const Login = () => {
 
       // 3️⃣ update AuthContext
       setUser(res.data.user);
+      socket.connect() ;
 
       navigate("/");
     } catch (err) {
@@ -49,6 +51,8 @@ const Login = () => {
       }
 
       // 1️⃣ google auth
+      console.log(credentialResponse);
+      
       await googleAuth(credentialResponse.credential);
 
       // 2️⃣ get verified user
@@ -56,6 +60,7 @@ const Login = () => {
 
       // 3️⃣ update context
       setUser(res.data.user);
+      socket.connect() ;
 
       navigate("/");
     } catch (err) {

@@ -124,11 +124,11 @@ const FriendsSection = () => {
               className="inter-var w-full cursor-pointer"
             >
               <CardBody className="bg-gray-50 relative group/card dark:bg-black dark:border-white/20 border-black/10 rounded-xl p-6 border w-full h-full">
-                <CardItem translateZ={50} className="text-xl font-bold">
-                  {user.username}
+                <CardItem translateZ={50} className="text-xl font-bold text-white">
+                  {(user.username) ? (user.username) : "DefaultUser"}
                 </CardItem>
 
-                <CardItem as="p" translateZ={60} className="text-sm mt-2">
+                <CardItem as="p" translateZ={60} className="text-sm mt-2 text-white">
                   {user.fullName}
                 </CardItem>
 

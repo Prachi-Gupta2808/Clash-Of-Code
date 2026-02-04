@@ -40,6 +40,8 @@ const NotificationSection = () => {
         }));
 
         setRequests([...incoming, ...pending]);
+        console.log(requests);
+        
       } catch (err) {
         console.error("Failed to fetch friend requests", err);
       } finally {
@@ -123,7 +125,7 @@ const NotificationSection = () => {
                     translateZ={50}
                     className="text-xl font-bold text-neutral-600 dark:text-white"
                   >
-                    {req.user.username}
+                    {req.type === "incoming" ? req.user.fullName : req.toUser.fullName}
                   </CardItem>
 
                   {/* STATUS */}

@@ -107,9 +107,11 @@ exports.googleAuth = async (req, res) => {
     const { email, name, sub: googleId } = payload;
 
     let user = await User.findOne({ email });
+    const extractUserName = email.split("@").at(0) ;
 
     if (!user) {
       user = await User.create({
+        username: extractUserName,
         fullName: name,
         email,
         googleId,

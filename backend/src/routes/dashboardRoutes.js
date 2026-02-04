@@ -6,11 +6,17 @@ const dashboardController = require("../controllers/dashboardController");
 
 /* ================= FRIEND REQUESTS ================= */
 
+router.get(
+  "/friends",
+  protect,
+  dashboardController.getFriends
+)
+
 // Send friend request
 router.post(
   "/friends/request/:id",
   protect,
-  dashboardController.sendFriendRequest
+  dashboardController.sendFriendRequest 
 );
 
 // Get incoming friend requests
