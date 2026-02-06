@@ -72,21 +72,40 @@ const PhotoCard = ({ photo, socialLinks, name }) => (
 
 export default function TwoPhotos() {
   const socialLinks = [
-    {
-      href: "mailto:prachig2808@gmail.com",
-      label: "Email",
-      icon: <FaEnvelope />,
-    },
-    {
-      href: "https://www.linkedin.com/in/prachi-gupta-74122a324",
-      label: "LinkedIn",
-      icon: <FaLinkedin />,
-    },
-    {
-      href: "https://github.com/Prachi-Gupta2808",
-      label: "GitHub",
-      icon: <FaGithub />,
-    },
+    [
+      {
+        href: "mailto:prachig2808@gmail.com",
+        label: "Email",
+        icon: <FaEnvelope />,
+      },
+      {
+        href: "https://www.linkedin.com/in/prachi-gupta-74122a324",
+        label: "LinkedIn",
+        icon: <FaLinkedin />,
+      },
+      {
+        href: "https://github.com/Prachi-Gupta2808",
+        label: "GitHub",
+        icon: <FaGithub />,
+      },
+    ],
+    [
+      {
+        href: "mailto:jangiryash04@gmail.com",
+        label: "Email",
+        icon: <FaEnvelope />,
+      },
+      {
+        href: "https://www.linkedin.com/in/yashjangir04",
+        label: "LinkedIn",
+        icon: <FaLinkedin />,
+      },
+      {
+        href: "https://github.com/yashjangir04",
+        label: "GitHub",
+        icon: <FaGithub />,
+      },
+    ],
   ];
 
   return (
@@ -94,15 +113,15 @@ export default function TwoPhotos() {
       <div className="flex flex-col md:flex-row items-center gap-12 md:gap-24">
         {/* Your photo */}
         <PhotoCard
-          photo="/path-to-your-photo.jpg"
+          photo="/pic_prachi.jpeg"
           name="Prachi Gupta"
-          socialLinks={socialLinks}
+          socialLinks={socialLinks[0]}
         />
 
         <PhotoCard
-          photo="https://images.unsplash.com/photo-1614281280120-4f407a4dc5e0?w=800"
-          name="Dummy Person"
-          socialLinks={socialLinks}
+          photo="/pic_yash.jpg"
+          name="Yash Jangir"
+          socialLinks={socialLinks[1]}
         />
       </div>
     </main>

@@ -97,3 +97,15 @@
       to { transform: scale(1); }
     }
   }
+
+  .marquee {
+    flex-shrink: 0;
+  }
+
+  .marquee h1 {
+    font-size: 4vw;
+  }
+
+  .marquee img {
+    transform: rotateZ(180deg);
+  }

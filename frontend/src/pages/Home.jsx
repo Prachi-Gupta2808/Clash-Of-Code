@@ -40,7 +40,7 @@ const Home = () => {
       await logout();
       setUser(null);
       setProfileOpen(false);
-      socket.disconnect() ;
+      socket.disconnect();
       navigate("/login");
     } catch (err) {
       console.error("Logout failed:", err);
@@ -79,7 +79,7 @@ const Home = () => {
             <div className="absolute w-40 h-20 bottom-20 right-10 md:bottom-0 md:right-0 bg-[#0C0C0C] z-10" />
           </div>
 
-          {/* PROFILE / AUTH — unchanged */}
+          {/* PROFILE / AUTH */}
           <div className="absolute top-5 right-10 z-20" ref={profileRef}>
             {isLoggedIn ? (
               <div className="relative">
@@ -188,8 +188,19 @@ const Home = () => {
           </div>
         </MaskContainer>
       </div>
+
       <ScrollStatsSection scrollRef={scrollRef} />
+
+      <div className="flex flex-col items-center gap-4 pt-32 pb-10 px-4 z-10 relative">
+        <h1 className="text-center text-5xl md:text-7xl lg:text-[90px] font-bold text-black dark:text-white leading-[1.1] tracking-tight">
+          What our users say <br className="hidden md:block" />
+          <span className="text-[#F2613F]">about</span>{" "}
+          <span className="text-[#F2613F]">us !!</span>
+        </h1>
+      </div>
+      
       <ScrollReview scrollRef={scrollRef} />
+      
       <TwoPhotos />
       <Footer />
     </div>

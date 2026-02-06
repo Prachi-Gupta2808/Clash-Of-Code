@@ -6,78 +6,82 @@ import { useEffect, useRef } from "react";
 
 gsap.registerPlugin(ScrollTrigger);
 
-const bars = [
+const reviews = [
   {
-    side: "left",
-    y: -200,
-    color: "bg-white text-black",
-    text: "Best site to improve coding speed and logic!",
+    name: "Divyanshi",
+    platform: "COC",
+    text: "Finally, a platform where coding feels",
+    direction: "left",
   },
   {
-    side: "right",
-    y: -120,
-    color: "bg-[#F2613F] text-white",
-    text: "Perfect platform to compete with friends and learn!",
+    name: "Ankur",
+    platform: "LinkedIn",
+    text: "Learning through competition.",
+    direction: "right",
   },
   {
-    side: "left",
-    y: -40,
-    color: "bg-white text-black",
-    text: "Challenges are fun, engaging, and well-designed.",
+    name: "Vanshika",
+    platform: "LinkedIn",
+    text: "Simple, sharp, competitive.",
+    direction: "left",
   },
   {
-    side: "right",
-    y: 40,
-    color: "bg-[#F2613F] text-white",
-    text: "I improved my problem-solving skills dramatically!",
+    name: "Aman",
+    platform: "LinkedIn",
+    text: "Where Practice meets pressure.",
+    direction: "right",
   },
   {
-    side: "left",
-    y: 120,
-    color: "bg-white text-black",
-    text: "Interactive interface makes learning enjoyable.",
-  },
-  {
-    side: "right",
-    y: 200,
-    color: "bg-[#F2613F] text-white",
-    text: "A must-use platform for anyone serious about coding!",
+    name: "Lovepreet",
+    platform: "LinkedIn",
+    text: "Everything feels instant and focused.",
+    direction: "left",
   },
 ];
 
 const ScrollReview = ({ scrollRef }) => {
   const sectionRef = useRef(null);
-  const barsRef = useRef([]);
+  const rowsRef = useRef([]);
 
   useEffect(() => {
     if (!scrollRef?.current) return;
 
     const ctx = gsap.context(() => {
-      const tl = gsap.timeline({
-        scrollTrigger: {
-          trigger: sectionRef.current,
-          scroller: scrollRef.current,
-          start: "top top",
-          end: () => `+=${sectionRef.current.offsetHeight * 2}`, // dynamic scroll distance
-          scrub: true,
-          pin: true,
-        },
-      });
+      rowsRef.current.forEach((row, i) => {
+        if (!row) return;
 
-      barsRef.current.forEach((bar, i) => {
-        if (!bar) return;
+        const config = reviews[i];
+        const isLeft = config.direction === "left";
+        
+        // Reduced movement range slightly (20 instead of 30) 
+        // so it feels less chaotic and more readable.
+        const moveAmount = 25; 
 
-        const barWidth = bar.offsetWidth;
-        const fromX =
-          bars[i].side === "left"
-            ? -barWidth - Math.random() * 50
-            : window.innerWidth + Math.random() * 50;
-        const toX =
-          bars[i].side === "left"
-            ? window.innerWidth + Math.random() * 50
-            : -barWidth - Math.random() * 50;
-
-        tl.fromTo(bar, { x: fromX }, { x: toX, ease: "none" }, 0);
+        gsap.fromTo(
+          row,
+          {
+            xPercent: isLeft ? moveAmount : -moveAmount,
+          },
+          {
+            xPercent: isLeft ? -moveAmount : moveAmount,
+            ease: "none",
+            scrollTrigger: {
+              trigger: row,
+              scroller: scrollRef.current,
+              
+              // --- TIMING FIX ---
+              // "top 85%" -> Start when the top of the text is 85% down the viewport 
+              // (It waits until it is well inside the screen before moving).
+              start: "top 85%", 
+              
+              // "bottom 15%" -> End when the bottom of the text is 15% from the top
+              // (Stops moving just before it leaves the screen).
+              end: "bottom 15%", 
+              
+              scrub: 1, // Adds a little weight/delay to the movement
+            },
+          }
+        );
       });
     }, sectionRef);
 
@@ -87,32 +91,41 @@ const ScrollReview = ({ scrollRef }) => {
   return (
     <section
       ref={sectionRef}
-      className="relative w-full h-screen overflow-visible"
+      className="relative w-full py-40 overflow-hidden bg-[#0C0C0C] flex flex-col gap-40"
     >
-      {bars.map((bar, i) => {
-        const rotate = (Math.random() - 0.5) * 4; // -2 to +2 deg
-        const verticalOffset = (Math.random() - 0.5) * 20; // -10 to +10px
-        const spacing = 150; // spacing between bars
+      {/* Background decoration */}
+      <div className="absolute top-0 left-0 w-full h-full opacity-5 pointer-events-none">
+         <div className="w-[600px] h-[600px] bg-[#F2613F] rounded-full blur-[150px] absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2" />
+      </div>
 
+      {reviews.map((review, i) => {
         return (
-          <div
-            key={i}
-            ref={(el) => (barsRef.current[i] = el)}
-            style={{
-              top: `calc(50% + ${i * spacing + bar.y + verticalOffset}px)`,
-              rotate: `${rotate}deg`,
-            }}
-            className={`absolute
-              h-[120px] 
-              px-6
-              flex items-center
-              text-[100px] font-semibold
-              shadow-[0_20px_60px_rgba(0,0,0,0.45)]
-              ${bar.color}
-              whitespace-nowrap
-            `}
+          <div 
+            key={i} 
+            className="w-full flex justify-center items-center relative"
           >
-            {bar.text}
+            <div
+              ref={(el) => (rowsRef.current[i] = el)}
+              className="flex flex-col items-start min-w-max"
+            >
+              {/* Badge */}
+              <div 
+                className={`
+                  mb-4 px-4 py-1 
+                  bg-(--c4) text-white
+                  text-sm md:text-xl font-bold uppercase tracking-wider
+                  transform -skew-x-12 origin-bottom-left
+                  ml-4 md:ml-10
+                `}
+              >
+                {review.name} <span className="opacity-60 text-xs normal-case mx-1">via</span> {review.platform}
+              </div>
+
+              {/* Text */}
+              <h2 className="text-[10vw] md:text-[8vw] leading-[0.9] font-black text-white whitespace-nowrap uppercase tracking-tighter opacity-90">
+                "{review.text}"
+              </h2>
+            </div>
           </div>
         );
       })}
