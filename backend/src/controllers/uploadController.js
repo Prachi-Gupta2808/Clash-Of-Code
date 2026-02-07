@@ -20,9 +20,7 @@ exports.uploadAvatar = [
       }
 
       const webpBuffer = await sharp(file.buffer)
-        .resize(256, 256, {
-          fit: "cover",
-        })
+        .resize(256, 256, { fit: "cover" })
         .webp({ quality: 80 })
         .toBuffer();
       const filePath = `${userId}.webp`;
@@ -31,8 +29,8 @@ exports.uploadAvatar = [
 
       const { error } = await supabase.storage
         .from("avatars")
-        .upload(filePath, file.buffer, {
-          contentType: file.mimetype,
+        .upload(filePath, webpBuffer, {
+          contentType: "image/webp",
           upsert: true,
         });
 
@@ -40,8 +38,10 @@ exports.uploadAvatar = [
 
       const { data } = supabase.storage.from("avatars").getPublicUrl(filePath);
 
+      const avatarUrl = `${data.publicUrl}?t=${Date.now()}`;
+
       await User.findByIdAndUpdate(userId, {
-        avatar: data.publicUrl,
+        avatar: avatarUrl,
       });
 
       res.status(200).json({

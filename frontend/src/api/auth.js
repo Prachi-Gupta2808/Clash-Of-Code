@@ -7,7 +7,8 @@ const API = axios.create({
 
 export const signup = (data) => API.post("/auth/signup", data);
 export const login = (data) => API.post("/auth/login", data);
-export const googleAuth = (credential) => API.post("/auth/google", { token : credential });
+export const googleAuth = (credential) =>
+  API.post("/auth/google", { token: credential });
 export const getMe = () => API.get("/auth/me");
 export const logout = () => API.post("/auth/logout");
 
@@ -15,6 +16,13 @@ export const getFriends = () => API.get("/dashboard/friends");
 
 export const sendFriendRequest = (userId) =>
   API.post(`/dashboard/friends/request/${userId}`);
+
+export const uploadAvatar = (formData) =>
+  API.post("/upload/avatar", formData , {
+    headers: {
+      "Content-Type": "multipart/form-data",
+    },
+  });
 
 export const getIncomingFriendRequests = () =>
   API.get("/dashboard/friends/requests/incoming");

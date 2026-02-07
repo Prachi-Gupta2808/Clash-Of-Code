@@ -13,6 +13,7 @@ const { protect } = require("./src/middlewares/authMiddleware");
 const { uploadAvatar } = require("./src/controllers/uploadController");
 const { addQuestion } = require("./src/controllers/adminController");
 const dashboardRoutes = require("./src/routes/dashboardRoutes");
+const { changeUsername } = require("./src/controllers/userController.js");
 
 const app = express();
 
@@ -30,6 +31,7 @@ app.use(
 app.use("/api/auth", authRoutes);
 app.post("/api/upload/avatar", protect, uploadAvatar);
 app.post("/api/upload/question", protect, addQuestion);
+app.post("/api/change/username", protect, changeUsername);
 app.use("/api/dashboard", dashboardRoutes);
 
 module.exports = app;

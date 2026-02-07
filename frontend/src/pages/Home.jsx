@@ -200,7 +200,14 @@ const Home = () => {
       </div>
       
       <ScrollReview scrollRef={scrollRef} />
-      
+
+      <div className="flex flex-col items-center gap-4 pt-32 pb-10 px-4 z-10 relative">
+        <h1 className="text-center text-5xl md:text-7xl lg:text-[90px] font-bold text-black dark:text-white leading-[1.1] tracking-tight">
+          Who created this <br className="hidden md:block" />
+          <span className="text-[#F2613F]">cool</span>{" "}
+          <span className="text-[#F2613F]">platform</span>
+        </h1>
+      </div>
       <TwoPhotos />
       <Footer />
     </div>
