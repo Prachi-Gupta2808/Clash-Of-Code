@@ -6,7 +6,7 @@ const lobbies = {
   contest: []
 }
 
-const enterLobby = (userId , socket , mode) => {
+const enterLobby = (userId , socket , mode , rating) => {
     // invalid mode identified
     if(!VALID_MODES.includes(mode)) {
         return ;
@@ -21,7 +21,8 @@ const enterLobby = (userId , socket , mode) => {
 
     lobby.push({
         userId,
-        socketId : socket.id
+        socketId : socket.id,
+        rating
     })
     
     console.log(`LOBBY [${mode}]:`, lobby.map(u => u.userId))

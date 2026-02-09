@@ -38,9 +38,9 @@ const Home = () => {
   const handleLogout = async () => {
     try {
       await logout();
+      socket.disconnect();
       setUser(null);
       setProfileOpen(false);
-      socket.disconnect();
       navigate("/login");
     } catch (err) {
       console.error("Logout failed:", err);
@@ -154,7 +154,11 @@ const Home = () => {
               text-white px-4 py-3 text-2xl poppins-bold-italic rounded-xl
               flex gap-2 items-center
               shadow-[0_0_20px_rgba(242,97,63,0.6)] cursor-pointer"
-            onClick={() => navigate(isLoggedIn ? "/play" : "/login")}
+            onClick={() => {
+              // socket.disconnect() ;
+              // socket.connect() ;
+              navigate(isLoggedIn ? "/play" : "/login")
+            }}
           >
             <FaPlay className="text-[20px]" />
             Play Now

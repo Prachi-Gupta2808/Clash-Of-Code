@@ -1,6 +1,7 @@
 import { useAuth } from "@/auth/AuthContext";
 import React from "react";
 import { useNavigate } from "react-router-dom";
+import { socket } from "@/components/socket/socket";
 
 const themes = [
   { key: "mcq", label: "MCQs", desc: "Quick coding questions" },
@@ -25,6 +26,7 @@ const ThemeSelect = () => {
               key={t.key}
               onClick={() => {
                 console.log(user);
+                socket.connect() ;
                 navigate(`/lobby/${t.key}`) 
                 }}
               className="bg-white dark:bg-neutral-800 rounded-xl p-6 text-left hover:scale-105 transition shadow"

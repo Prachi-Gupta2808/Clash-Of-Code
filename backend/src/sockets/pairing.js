@@ -10,42 +10,9 @@ const runBatchForMode = (mode, io) => {
   console.log(`Running Batch for [${mode}]`);
   // freeze i.e. take a snapshot of the current lobby (in js playersays are passed by reference so to create a deep copy we used this method)
   const players = structuredClone(lobby);
-  //   const players = [
-  //     {
-  //       userId: "user1",
-  //       socketId: "su1",
-  //       rating: 1300,
-  //     },
-  //     {
-  //       userId: "user2",
-  //       socketId: "su2",
-  //       rating: 1420,
-  //     },
-  //     {
-  //       userId: "user3",
-  //       socketId: "su3",
-  //       rating: 1180,
-  //     },
-  //     {
-  //       userId: "user4",
-  //       socketId: "su4",
-  //       rating: 1505,
-  //     },
-  //     {
-  //       userId: "user5",
-  //       socketId: "su5",
-  //       rating: 1350,
-  //     },
-  //     {
-  //       userId: "user6",
-  //       socketId: "su6",
-  //       rating: 1600,
-  //     },
-  //   ];
 
-  //   players.sort((player1 , player2) => {
-  //     player1.rating < player2.rating ;
-  //   });
+  players.sort((a, b) => a.rating - b.rating); // if -ve i.e. (a < b) -> a appears before b else swap | sort in increasing order
+
   let n = players?.length;
   let l = 0;
   let r = n - 1;

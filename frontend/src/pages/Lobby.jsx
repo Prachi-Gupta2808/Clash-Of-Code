@@ -16,22 +16,20 @@ const Lobby = () => {
 
     socket.emit("PLAY_NOW", { mode });
 
-    socket.on("PAIRED" , (data) => {
+    socket.on("PAIRED", (data) => {
       console.log("Paired:", data);
       setStatus("PAIRED");
-    })
+    });
 
     return () => {
       socket.off("PAIRED");
     };
-  }, [mode , loading , user ]);
+  }, [mode, loading, user]);
 
   return (
     <div className="w-full h-screen flex justify-center items-center text-white">
       <h1>
-        {status === "WAITING"
-          ? "Waiting for opponent..."
-          : "Match Found!"}
+        {status === "WAITING" ? "Waiting for opponent..." : "Match Found!"}
       </h1>
     </div>
   );

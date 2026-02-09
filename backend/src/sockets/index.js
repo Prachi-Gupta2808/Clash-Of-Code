@@ -6,11 +6,12 @@ module.exports = function initSockets(io) {
 
   io.on("connection", socket => {
     const userId = socket.user._id.toString();
+    const rating = socket.user.rating ;
 
     console.log("🔌 Socket connected:", userId);
 
     socket.on("PLAY_NOW", ({ mode }) => {
-      enterLobby(userId, socket, mode);
+      enterLobby(userId, socket, mode , rating);
     });
 
     socket.on("CANCEL", ({ mode }) => {

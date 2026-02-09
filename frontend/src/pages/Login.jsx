@@ -33,8 +33,6 @@ const Login = () => {
 
       // 3️⃣ update AuthContext
       setUser(res.data.user);
-      socket.connect() ;
-
       navigate("/");
     } catch (err) {
       console.error(err.response?.data);
@@ -60,8 +58,6 @@ const Login = () => {
 
       // 3️⃣ update context
       setUser(res.data.user);
-      socket.connect() ;
-
       navigate("/");
     } catch (err) {
       console.error(err.response?.data);
