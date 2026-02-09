@@ -80,7 +80,7 @@ const Home = () => {
           </div>
 
           {/* PROFILE / AUTH */}
-          <div className="absolute top-5 right-10 z-20" ref={profileRef}>
+          <div className="fixed top-5 right-10 z-20" ref={profileRef}>
             {isLoggedIn ? (
               <div className="relative">
                 <img

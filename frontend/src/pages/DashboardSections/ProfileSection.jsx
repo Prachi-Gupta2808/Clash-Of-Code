@@ -297,7 +297,7 @@ const ProfileSection = ({ user }) => {
                   className={`
                     group/edit relative flex items-center justify-center gap-2 
                     px-3 py-1.5 rounded-lg transition-all duration-200
-                    ${!inputDisabled ? "bg-neutral-800 w-full max-w-[240px] border border-neutral-700" : "hover:bg-neutral-800/50 cursor-pointer"}
+                    ${!inputDisabled ? "bg-neutral-800 w-full max-w-60 border border-neutral-700" : "hover:bg-neutral-800/50 cursor-pointer"}
                   `}
                   onClick={inputDisabled ? handleEditClick : undefined}
                 >

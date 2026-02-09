@@ -1,6 +1,6 @@
 "use client";
 import axios from "axios";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 import { cn } from "@/lib/utils";
@@ -28,6 +28,13 @@ const Dashboard = () => {
   const navigate = useNavigate();
   const [open, setOpen] = useState(false);
   const [activeSection, setActiveSection] = useState("profile");
+
+  useEffect(() => {
+    if(!user) {
+      navigate("/login");
+    }
+  }, [])
+  
 
   const handleLogout = async () => {
     try {
