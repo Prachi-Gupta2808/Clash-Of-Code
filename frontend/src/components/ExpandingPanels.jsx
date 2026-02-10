@@ -6,29 +6,33 @@ import { useState } from "react";
 const panelsData = [
   {
     id: 1,
-    title: "Desert",
+    key: "contest",
+    title: "Code Knockout",
     image:
-      "https://images.unsplash.com/photo-1501785888041-af3ef285b470?auto=format&fit=crop&w=800&q=80",
+      "/codeknockout.png",
   },
   {
     id: 2,
-    title: "Ocean",
+    key: "mcqs",
+    title: "Output Rush",
     image:
-      "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=800&q=80",
+      "/predict.png",
   },
   {
     id: 3,
-    title: "Forest",
+    key: "predict",
+    title: "Complexity Clash",
     image:
-      "https://images.unsplash.com/photo-1441974231531-c6227db76b6e?auto=format&fit=crop&w=800&q=80",
+      "/timecomplexity.png",
   },
 ];
+
 
 function Panel({ panel, isActive, onClick }) {
   return (
     <motion.div
       onClick={onClick}
-      className="relative cursor-pointer overflow-hidden rounded-2xl flex-shrink-0"
+      className="relative cursor-pointer overflow-hidden rounded-2xl shrink-0"
       style={{ willChange: "transform, width" }}
       animate={{
         width: isActive ? "60%" : "20%",
