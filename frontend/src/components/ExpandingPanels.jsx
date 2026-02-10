@@ -8,30 +8,26 @@ const panelsData = [
     id: 1,
     key: "contest",
     title: "Code Knockout",
-    image:
-      "/codeknockout.png",
+    image: "/codeknockout.png",
   },
   {
     id: 2,
     key: "mcqs",
     title: "Output Rush",
-    image:
-      "/predict.png",
+    image: "/predictoutput.png",
   },
   {
     id: 3,
     key: "predict",
     title: "Complexity Clash",
-    image:
-      "/timecomplexity.png",
+    image: "/timecomplexity.png",
   },
 ];
 
-
-function Panel({ panel, isActive, onClick }) {
+function Panel({ panel, isActive, onHover }) {
   return (
     <motion.div
-      onClick={onClick}
+      onHoverStart={onHover}
       className="relative cursor-pointer overflow-hidden rounded-2xl shrink-0"
       style={{ willChange: "transform, width" }}
       animate={{
@@ -50,7 +46,7 @@ function Panel({ panel, isActive, onClick }) {
         style={{ willChange: "transform" }}
       />
       <div className="absolute inset-0 bg-black/30" />
-      <h2 className="absolute bottom-6 left-6 text-2xl font-semibold text-white drop-shadow-lg">
+      <h2 className="absolute bottom-6 left-6 text-lg font-semibold backdrop-blur-md text-white drop-shadow-lg bg-white/30 px-3 py-2 rounded-md">
         {panel.title}
       </h2>
     </motion.div>
@@ -68,22 +64,13 @@ export default function ExpandingPanels() {
       viewport={{ once: true, amount: 0.3 }}
       transition={{ duration: 0.8, ease: "easeOut" }}
     >
-      <div className="flex flex-col items-center gap-4 scale-80">
-        <h1 className="text-center text-[100px] font-bold text-black dark:text-white py-10 text-wrap leading-24">
-          Three modes designed for{" "}
-          <span style={{ color: "#F2613F" }}>speed</span>,{" "}
-          <span style={{ color: "#F2613F" }}>accuracy</span>, &{" "}
-          <span style={{ color: "#F2613F" }}>logic</span>
-        </h1>
-      </div>
-
       <div className="flex h-[70vh] w-[80vw] gap-4">
         {panelsData.map((panel) => (
           <Panel
             key={panel.id}
             panel={panel}
             isActive={panel.id === activeId}
-            onClick={() => setActiveId(panel.id)}
+            onHover={() => setActiveId(panel.id)}
           />
         ))}
       </div>

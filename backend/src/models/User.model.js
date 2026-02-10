@@ -16,7 +16,7 @@ const statsSchema = new mongoose.Schema(
       default: 0,
     },
   },
-  { _id: false },
+  { _id: false }
 );
 
 const userSchema = new mongoose.Schema(
@@ -25,6 +25,7 @@ const userSchema = new mongoose.Schema(
       type: String,
       unique: true,
       sparse: true,
+      require: true,
     },
     fullName: {
       type: String,
@@ -34,11 +35,13 @@ const userSchema = new mongoose.Schema(
       type: String,
       unique: true,
       sparse: true,
+      require: true,
     },
     password: {
       type: String,
       minlength: 6,
       select: false,
+      require: true,
     },
     googleId: {
       type: String,
@@ -71,7 +74,8 @@ const userSchema = new mongoose.Schema(
     stats: statsSchema,
     avatar: {
       type: String,
-      default: "https://riqieznxfrbdfcyfoxss.supabase.co/storage/v1/object/public/avatars/defaultPic.webp",
+      default:
+        "https://riqieznxfrbdfcyfoxss.supabase.co/storage/v1/object/public/avatars/defaultPic.webp",
     },
     isAdmin: {
       type: Boolean,
@@ -80,7 +84,7 @@ const userSchema = new mongoose.Schema(
   },
   {
     timestamps: true,
-  },
+  }
 );
 
 userSchema.pre("save", async function (next) {

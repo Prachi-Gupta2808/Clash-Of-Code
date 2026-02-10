@@ -1,18 +1,18 @@
 const Question = require("../models/Question.model");
 
 const normalize = (s) => {
-  return s.trim().replace(/\s+/g, ' ');
-}
+  return s.trim().replace(/\s+/g, " ");
+};
 
 exports.addQuestion = async (req, res) => {
   try {
-    const { rating, tags, theme, statement, options, preTest, expectedOutput } =
+    let { rating, tags, theme, statement, options, preTest, expectedOutput } =
       req.body;
-    const admin = req.user.isAdmin ;
-    if(!admin) {
+    const admin = req.user.isAdmin;
+    if (!admin) {
       return res.status(401).json({
-        message: "Unauthorized Access"
-      })
+        message: "Unauthorized Access",
+      });
     }
 
     // basic validation yeh hongi
@@ -21,7 +21,7 @@ exports.addQuestion = async (req, res) => {
         message: "rating, statement and expectedOutput are required",
       });
     }
-    expectedOutput = normalize(expectedOutput) ; // remove extra spaces newline character etc
+    expectedOutput = normalize(expectedOutput); // remove extra spaces newline character etc
 
     const question = await Question.create({
       rating,

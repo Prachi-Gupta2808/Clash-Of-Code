@@ -14,6 +14,7 @@ const { uploadAvatar } = require("./src/controllers/uploadController");
 const { addQuestion } = require("./src/controllers/adminController");
 const dashboardRoutes = require("./src/routes/dashboardRoutes");
 const { changeUsername } = require("./src/controllers/userController.js");
+const adminRoutes = require("./src/routes/adminRoutes");
 
 const app = express();
 
@@ -33,5 +34,6 @@ app.post("/api/upload/avatar", protect, uploadAvatar);
 app.post("/api/upload/question", protect, addQuestion);
 app.post("/api/change/username", protect, changeUsername);
 app.use("/api/dashboard", dashboardRoutes);
+app.use("/api/admin", adminRoutes);
 
 module.exports = app;

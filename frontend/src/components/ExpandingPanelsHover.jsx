@@ -11,22 +11,19 @@ const panelsData = [
     id: 1,
     key: "contest",
     title: "Code Knockout",
-    image:
-      "/codeknockout.png",
+    image: "/codeknockout.png",
   },
   {
     id: 2,
     key: "mcqs",
     title: "Output Rush",
-    image:
-      "/predict.png",
+    image: "/predictoutput.png",
   },
   {
     id: 3,
     key: "predict",
     title: "Complexity Clash",
-    image:
-      "/timecomplexity.png",
+    image: "/timecomplexity.png",
   },
 ];
 
@@ -68,7 +65,7 @@ export default function ExpandingPanelsHover() {
   const handleClick = (panelkey) => {
     console.log(user);
     socket.connect();
-    document.documentElement.requestFullscreen() ;
+    document.documentElement.requestFullscreen();
     navigate(`/lobby/${panelkey}`);
   };
 
