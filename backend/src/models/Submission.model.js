@@ -2,29 +2,42 @@ const mongoose = require("mongoose");
 
 const submissionSchema = new mongoose.Schema(
   {
-    submissionTime: {
-      type: Date,
-      default: Date.now,
+    user: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      required: true,
     },
-    compilationTime: Date,
-    error: String,
+
+    match: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Match",
+      required: true,
+    },
+
     language: {
       type: String,
       enum: ["cpp", "java", "python"],
       required: true,
     },
+
     code: {
       type: String,
       required: true,
     },
-    isAccepted: {
-      type: Boolean,
-      default: false,
+
+    status: {
+      type: String,
+      enum: ["AC", "WA", "TLE", "MLE", "RE", "CE"],
+      required: true,
     },
-    memoryTaken: Number,
+
+    compilationTime: { type: Number , default: 0 },  
+    executionTime: { type: Number , default: 0 },    
+    memoryTaken: { type: Number , default: 0 },      
+
+    error: String,
   },
-  { timestamps: true },
+  { timestamps: true }
 );
 
-const SubmissionModel  = mongoose.model("Submission", submissionSchema);
-module.exports = SubmissionModel ;
+module.exports = mongoose.model("Submission", submissionSchema);

@@ -11,30 +11,30 @@ const matchSchema = new mongoose.Schema(
       ref: "User",
       required: true,
     },
+    matchId: {
+      type: String,
+      required: true,
+      unique: true,
+    },
+    status: {
+      type: String,
+      enum: ["ONGOING", "FINISHED", "CANCELLED"],
+      default: "ONGOING",
+    },
     winner: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
+      default: null,
     },
     theme: {
       type: String,
+      enum: ["contest", "mcq", "predict"],
       required: true
     },
     isChallenged: {
       type: Boolean,
-      required: true,
+      default: false
     },
-    submissionHistoryP1: [
-      {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "Submission",
-      },
-    ],
-    submissionHistoryP2: [
-      {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "Submission",
-      },
-    ],
     questions: [
       {
         type: mongoose.Schema.Types.ObjectId,
@@ -42,12 +42,12 @@ const matchSchema = new mongoose.Schema(
       },
     ],
     ratingChange: {
-      p1: Number,
-      p2: Number,
+      p1: { type: Number, default: 0 },
+      p2: { type: Number, default: 0 },
     },
   },
   { timestamps: true },
 );
 
 const MatchModel = mongoose.model("Match", matchSchema);
-module.exports =  MatchModel;
+module.exports = MatchModel;

@@ -1,13 +1,14 @@
 import { useAuth } from "@/auth/AuthContext";
 import { socket } from "@/components/socket/socket";
-import React, { useEffect, useState } from "react";
+import React, { use, useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
-import { io } from "socket.io-client";
+import { useNavigate } from "react-router-dom";
 
 const Lobby = () => {
   const { mode } = useParams();
   const [status, setStatus] = useState("WAITING");
   const { user, loading } = useAuth();
+  const navigate = useNavigate() ;
 
   useEffect(() => {
     if (!user || loading) return;
@@ -18,8 +19,10 @@ const Lobby = () => {
 
     socket.on("PAIRED", (data) => {
       console.log("Paired:", data);
+      navigate(`/match/${mode}/${data.roomId}`) ;
       setStatus("PAIRED");
     });
+
 
     return () => {
       socket.off("PAIRED");
@@ -29,7 +32,7 @@ const Lobby = () => {
   return (
     <div className="w-full h-screen flex justify-center items-center text-white">
       <h1>
-        {status === "WAITING" ? "Waiting for opponent..." : "Match Found!"}
+        {status === "WAITING" ? "Waiting for opponent..." : status}
       </h1>
     </div>
   );

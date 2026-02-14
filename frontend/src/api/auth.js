@@ -45,4 +45,8 @@ export const searchUsers = (query) => API.get(`/dashboard/search?q=${query}`);
 export const cancelPendingRequest = (requestId) =>
   API.delete(`/dashboard/friends/requests/${requestId}/cancel`);
 
-export const addQuestion = (data) => API.post("/admin", data);
+export const addQuestion = (data) => API.post("/admin/add", data);
+
+export const getInformation = (data) => API.post("/match/getinfo" , {
+  matchId : data
+});

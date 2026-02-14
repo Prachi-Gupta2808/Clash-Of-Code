@@ -11,11 +11,10 @@ import Lobby from "./pages/Lobby";
 import Login from "./pages/Login";
 import SignUp from "./pages/SignUp";
 import ThemeSelect from "./pages/ThemeSelect";
+import Playground from "./pages/Playground";
 
 function App() {
   const { user, loading } = useAuth();
-
-  // ✅ THIS was missing
   const [introDone, setIntroDone] = useState(false);
 
   if (loading || !introDone) {
@@ -51,6 +50,7 @@ function App() {
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/play" element={<ThemeSelect />} />
           <Route path="/lobby/:mode" element={<Lobby />} />
+          <Route path="/match/:theme/:matchId" element={<Playground />} />
         </Route>
       </Routes>
     </>

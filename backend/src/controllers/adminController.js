@@ -6,31 +6,66 @@ const normalize = (s) => {
 
 exports.addQuestion = async (req, res) => {
   try {
-    let { rating, tags, theme, statement, options, preTest, expectedOutput } =
-      req.body;
-    const admin = req.user.isAdmin;
-    if (!admin) {
-      return res.status(401).json({
-        message: "Unauthorized Access",
-      });
-    }
-
-    // basic validation yeh hongi
-    if (!rating || !statement || !expectedOutput) {
-      return res.status(400).json({
-        message: "rating, statement and expectedOutput are required",
-      });
-    }
-    expectedOutput = normalize(expectedOutput); // remove extra spaces newline character etc
-
-    const question = await Question.create({
+    let {
+      title,
       rating,
       tags,
       theme,
       statement,
+      inputFormat,
+      outputFormat,
+      contraints,
       options,
       preTest,
-      expectedOutput,
+      preTestOutput,
+      actualTest,
+      actualTestOutput,
+      timeLimit,
+      memoryLimit,
+    } = req.body;
+
+    // authorization Check
+    const admin = req.user.isAdmin;
+    if (!admin) {
+      return res.status(401).json({
+        message: "Unauthorized Access: Admin privileges required",
+      });
+    }
+
+    // validation
+    if (!title || !rating || !statement || !actualTestOutput) {
+      return res.status(400).json({
+        message:
+          "Title, Rating, Statement, and Actual Test Output are required fields.",
+      });
+    }
+
+    // We normalize outputs to ensure consistent comparison later
+    // We generally do NOT normalize input code/statements too aggressively to preserve formatting
+    const normalizedPreTestOutput = preTestOutput
+      ? normalize(preTestOutput)
+      : "";
+    const normalizedActualTestOutput = normalize(actualTestOutput);
+    statement = normalize(statement) ;
+    inputFormat = normalize(inputFormat) ;
+    outputFormat = normalize(outputFormat) ;
+
+    const question = await Question.create({
+      title,
+      rating,
+      tags,
+      theme,
+      statement,
+      inputFormat,
+      outputFormat,
+      contraints,
+      options,
+      timeLimit,
+      memoryLimit,
+      preTest,
+      preTestOutput: normalizedPreTestOutput,
+      actualTest,
+      actualTestOutput: normalizedActualTestOutput,
     });
 
     res.status(201).json({
@@ -38,6 +73,7 @@ exports.addQuestion = async (req, res) => {
       question,
     });
   } catch (error) {
+    console.error("Add Question Error:", error);
     res.status(500).json({
       message: "Failed to add question",
       error: error.message,

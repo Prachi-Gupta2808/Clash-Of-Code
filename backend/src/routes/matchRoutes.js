@@ -1,8 +1,9 @@
 const express = require("express");
 const router = express.Router();
 
-const adminController = require("../controllers/adminController");
+const { getMatchInformation } = require("../controllers/matchController");
 const { protect } = require("../middlewares/authMiddleware");
 
-router.post("/add", protect, adminController.addQuestion);
+router.post("/getinfo", protect , getMatchInformation);
+
 module.exports = router;

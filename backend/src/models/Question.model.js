@@ -14,6 +14,28 @@ const questionSchema = new mongoose.Schema(
       type: String,
       ref: "Theme",
     },
+    title: {
+      type: String,
+    },
+    inputFormat: {
+      type: String,
+    },
+    outputFormat: {
+      type: String,
+    },
+    contraints: { 
+      type: String,
+    },
+
+    timeLimit: {
+      type: Number,
+      default: 1.0,
+    },
+    memoryLimit: {
+      type: Number, 
+      default: 256,
+    },
+    // ------------------
     statement: {
       type: String,
       required: true,
@@ -23,14 +45,20 @@ const questionSchema = new mongoose.Schema(
       default: [],
     },
     preTest: {
-      type : String
+      type: String,
     },
-    expectedOutput: {
+    preTestOutput: {
+      type: String,
+    },
+    actualTest: {
+      type: String,
+    },
+    actualTestOutput: {
       type: String,
       required: true,
     },
   },
-  { timestamps: true },
+  { timestamps: true }
 );
 
 const QuestionModel = mongoose.model("Question", questionSchema);
