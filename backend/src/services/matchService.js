@@ -2,13 +2,15 @@ const Match = require("../models/Match.model");
 const Question = require("../models/Question.model");
 
 exports.createMatch = async (player1_ID, player2_ID, roomId, mode) => {
+  const questionCount = mode === "mcq" ? 10 : 1;
+
   const questions = await Question.aggregate([
     { $match: { theme: mode } },
-    { $sample: { size: 1 } },
+    { $sample: { size: questionCount } },
   ]);
 
   if (!questions.length) {
-    throw new Error("No question found for this theme");
+    throw new Error("No questions found for this theme");
   }
 
   const newMatch = await Match.create({

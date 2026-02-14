@@ -1,31 +1,31 @@
-import React, { useEffect, useState } from "react";
-import { useAuth } from "@/auth/AuthContext";
-import { useParams } from "react-router-dom";
-import Editor from "@monaco-editor/react";
 import { getInformation } from "@/api/auth";
+import { useAuth } from "@/auth/AuthContext";
+import Editor from "@monaco-editor/react";
 import {
+  AlertCircle,
+  Clock,
+  Code2,
+  Cpu,
+  FileText,
+  Hash,
+  Loader2,
   Play,
   Terminal,
-  Code2,
-  Loader2,
-  FileText,
-  AlertCircle,
-  Hash,
-  Clock,
-  Cpu,
 } from "lucide-react";
+import { useEffect, useState } from "react";
+import { useParams } from "react-router-dom";
 
 const statusColors = {
   Compiling: "text-yellow-400",
-  "AC": "text-green-400",
-  "WA": "text-red-400",
-  "RE": "text-red-500",
-  "CE": "text-orange-400",
+  AC: "text-green-400",
+  WA: "text-red-400",
+  RE: "text-red-500",
+  CE: "text-orange-400",
 };
 
 const Contest = () => {
   const { user, loading } = useAuth();
-  const { theme , matchId } = useParams();
+  const { theme, matchId } = useParams();
 
   const [question, setQuestion] = useState(null);
   const [language, setLanguage] = useState("cpp");

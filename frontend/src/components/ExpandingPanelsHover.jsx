@@ -12,18 +12,24 @@ const panelsData = [
     key: "contest",
     title: "Code Knockout",
     image: "/codeknockout.png",
+    description:
+      "Compete 1v1 in real-time coding battles. Solve problems faster than your opponent and climb the leaderboard.",
   },
   {
     id: 2,
-    key: "mcqs",
+    key: "predict",
     title: "Output Rush",
     image: "/predictoutput.png",
+    description:
+      "Predict outputs of tricky code snippets. Test your logical thinking and reaction speed under pressure.",
   },
   {
     id: 3,
-    key: "predict",
+    key: "mcq",
     title: "Complexity Clash",
     image: "/timecomplexity.png",
+    description:
+      "Analyze algorithms and choose the correct time or space complexity. Win with strong fundamentals.",
   },
 ];
 
@@ -31,28 +37,41 @@ function Panel({ panel, isActive, onHover, onClick }) {
   return (
     <motion.div
       onHoverStart={onHover}
-      className="relative cursor-pointer overflow-hidden rounded-2xl shrink-0"
-      style={{ willChange: "transform, width" }}
-      animate={{
-        width: isActive ? "60%" : "20%",
-        scale: isActive ? 1.02 : 1,
-      }}
       onClick={onClick}
-      transition={{ duration: 0.6, ease: "easeInOut" }}
+      className="relative cursor-pointer overflow-hidden rounded-3xl shrink-0"
+      animate={{
+        width: isActive ? "55%" : "22%",
+      }}
+      transition={{ duration: 0.5 }}
     >
+      {/* Background Image */}
       <motion.img
         src={panel.image}
         alt={panel.title}
         loading="lazy"
         className="absolute inset-0 h-full w-full object-cover"
-        animate={{ scale: isActive ? 1.05 : 1 }}
-        transition={{ duration: 0.6, ease: "easeInOut" }}
-        style={{ willChange: "transform" }}
+        animate={{ scale: isActive ? 1.08 : 1 }}
+        transition={{ duration: 0.5 }}
       />
-      <div className="absolute inset-0 bg-black/30" />
-      <h2 className="absolute bottom-6 left-6 text-lg font-semibold backdrop-blur-md text-white drop-shadow-lg bg-white/30 px-3 py-2 rounded-md">
-        {panel.title}
-      </h2>
+
+      {/* Clean Dark Gradient Overlay */}
+      <div className="absolute inset-0 bg-gradient-to-t from-black via-black/60 to-transparent" />
+
+      {/* Content */}
+      <div className="absolute bottom-8 left-8 right-6 text-white">
+        <h2 className="text-2xl font-bold tracking-wide">{panel.title}</h2>
+
+        {isActive && (
+          <motion.p
+            initial={{ opacity: 0, y: 15 }}
+            animate={{ opacity: 0.9, y: 0 }}
+            transition={{ duration: 0.4 }}
+            className="mt-4 text-sm text-gray-300 leading-relaxed max-w-md"
+          >
+            {panel.description}
+          </motion.p>
+        )}
+      </div>
     </motion.div>
   );
 }
@@ -65,31 +84,23 @@ export default function ExpandingPanelsHover() {
   const handleClick = (panelkey) => {
     console.log(user);
     socket.connect();
-    document.documentElement.requestFullscreen();
+    //document.documentElement.requestFullscreen();
     navigate(`/lobby/${panelkey}`);
   };
 
   return (
-    <motion.section
-      className="flex min-h-screen flex-col items-center justify-center gap-10 px-6"
-      initial={{ opacity: 0, y: 80 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true, amount: 0.3 }}
-      transition={{ duration: 0.8, ease: "easeOut" }}
-    >
-      <div className="flex h-[70vh] w-[80vw] gap-4">
+    <section className="flex min-h-screen items-center justify-center px-8">
+      <div className="flex h-[70vh] w-[85vw] gap-6">
         {panelsData.map((panel) => (
           <Panel
             key={panel.id}
             panel={panel}
             isActive={panel.id === activeId}
             onHover={() => setActiveId(panel.id)}
-            onClick={() => {
-              handleClick(panel.key);
-            }}
+            onClick={() => handleClick(panel.key)}
           />
         ))}
       </div>
-    </motion.section>
+    </section>
   );
 }

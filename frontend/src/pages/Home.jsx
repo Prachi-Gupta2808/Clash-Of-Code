@@ -6,13 +6,13 @@ import Footer from "@/components/Footer";
 import TwoPhotos from "@/components/ProfileCards";
 import ScrollReview from "@/components/ScrollReview";
 import ScrollStatsSection from "@/components/ScrollStatsSection";
+import { socket } from "@/components/socket/socket";
 import { MaskContainer } from "@/components/ui/svg-mask-effect";
 import { useEffect, useRef, useState } from "react";
 import { FaPlay } from "react-icons/fa6";
 import { useNavigate } from "react-router-dom";
 import { logout } from "../api/auth";
 import "./HomePage.css";
-import { socket } from "@/components/socket/socket";
 
 const Home = () => {
   const navigate = useNavigate();
@@ -157,7 +157,7 @@ const Home = () => {
             onClick={() => {
               // socket.disconnect() ;
               // socket.connect() ;
-              navigate(isLoggedIn ? "/play" : "/login")
+              navigate(isLoggedIn ? "/play" : "/login");
             }}
           >
             <FaPlay className="text-[20px]" />
@@ -202,10 +202,10 @@ const Home = () => {
           <span className="text-[#F2613F]">us</span>
         </h1>
       </div>
-      
+
       <ScrollReview scrollRef={scrollRef} />
 
-      <div className="flex flex-col items-center gap-4 pt-32 pb-10 px-4 z-10 relative">
+      <div className="flex flex-col items-center pt-32 px-4 z-10 relative">
         <h1 className="text-center text-5xl md:text-7xl lg:text-[90px] font-bold text-black dark:text-white leading-[1.1] tracking-tight">
           Who created this <br className="hidden md:block" />
           <span className="text-[#F2613F]">cool</span>{" "}
