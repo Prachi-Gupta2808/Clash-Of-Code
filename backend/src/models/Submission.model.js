@@ -9,8 +9,7 @@ const submissionSchema = new mongoose.Schema(
     },
 
     match: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "Match",
+      type: String,
       required: true,
     },
 

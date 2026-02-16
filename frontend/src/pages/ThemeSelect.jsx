@@ -4,7 +4,7 @@ import { useNavigate } from "react-router-dom";
 import ExpandingPanelsHover from "../components/ExpandingPanelsHover"
 
 const themes = [
-  { key: "mcq", label: "MCQs", desc: "Quick coding questions" },
+  { key: "mcqs", label: "MCQs", desc: "Quick coding questions" },
   { key: "predict", label: "Predict Output", desc: "Guess the output" },
   { key: "contest", label: "Contest", desc: "One full problem" },
 ];

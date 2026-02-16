@@ -238,7 +238,7 @@ const Predict = () => {
           </div>
 
           <div className="flex-1 relative group">
-            <div className="absolute inset-0 bg-gradient-to-b from-(--c4)/5 to-transparent opacity-0 group-focus-within:opacity-100 pointer-events-none transition-opacity rounded-xl" />
+            <div className="absolute inset-0 bg-linear-to-b from-(--c4)/5 to-transparent opacity-0 group-focus-within:opacity-100 pointer-events-none transition-opacity rounded-xl" />
             <textarea
               className="w-full h-full bg-[#18181b] text-white font-mono p-5 rounded-xl resize-none outline-none border-2 border-[#27272a] focus:border-(--c4) transition-all duration-200 shadow-inner placeholder:text-gray-600"
               placeholder="Type the exact output here..."

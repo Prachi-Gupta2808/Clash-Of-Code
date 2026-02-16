@@ -1,4 +1,4 @@
-import { getInformation } from "@/api/auth";
+import { getInformation, submitCode } from "@/api/auth";
 import { useAuth } from "@/auth/AuthContext";
 import Editor from "@monaco-editor/react";
 import {
@@ -25,7 +25,7 @@ const statusColors = {
 
 const Contest = () => {
   const { user, loading } = useAuth();
-  const { theme, matchId } = useParams();
+  const { matchId } = useParams();
 
   const [question, setQuestion] = useState(null);
   const [language, setLanguage] = useState("cpp");
@@ -59,12 +59,10 @@ const Contest = () => {
     setOutput("Compiling...");
 
     try {
-      const response = await fetch("http://localhost:5000/compile", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ language, code }),
-      });
-      const resp = await response.json();
+      const response = await submitCode({ language, code , questionId : question._id , matchId }) ;
+      const resp = response.data ;
+      // console.log(response.data);
+      
       setOutput(resp.verdict || resp.output || "Execution Complete");
     } catch (err) {
       setOutput("Error connecting to compiler server.");
@@ -242,7 +240,7 @@ const Contest = () => {
             language={language}
             value={code}
             theme="vs-dark"
-            onChange={setCode}
+            onChange={(value) => setCode(value || "")}
             options={{
               fontSize: 14,
               minimap: { enabled: false },
@@ -258,7 +256,7 @@ const Contest = () => {
           <div className="h-9 bg-[#18181b] border-b border-[#27272a] flex items-center px-4">
             <div className="flex items-center gap-2 text-xs font-semibold text-gray-400 uppercase tracking-wider">
               <Terminal className="w-3 h-3" />
-              <span>Console Output</span>
+              <span>Submission Result</span>
             </div>
           </div>
 

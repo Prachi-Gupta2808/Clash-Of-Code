@@ -50,3 +50,5 @@ export const addQuestion = (data) => API.post("/admin/add", data);
 export const getInformation = (data) => API.post("/match/getinfo" , {
   matchId : data
 });
+
+export const submitCode = (data) => API.post("/submit/contest" , data);
