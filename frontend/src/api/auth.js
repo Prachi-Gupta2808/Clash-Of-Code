@@ -52,3 +52,7 @@ export const getInformation = (data) => API.post("/match/getinfo" , {
 });
 
 export const submitCode = (data) => API.post("/submit/contest" , data);
+
+export const submitOutput = (data) => API.post("/submit/predict" , data);
+
+export const submitMcq = (data) => API.post("/submit/mcq" , data);

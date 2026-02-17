@@ -2,7 +2,7 @@ const Match = require("../models/Match.model");
 const Question = require("../models/Question.model");
 
 exports.createMatch = async (player1_ID, player2_ID, roomId, mode) => {
-  const questionCount = mode === "mcq" ? 10 : 1;
+  const questionCount = mode === "mcq" ? 10 : ("predict" ? 5 : 1) ;
 
   const questions = await Question.aggregate([
     { $match: { theme: mode } },

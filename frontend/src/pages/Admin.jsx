@@ -38,7 +38,7 @@ const Admin = () => {
     rating: "",
     tags: "",
     theme: "",
-    timeLimit: 1.0,   // Default 1s
+    timeLimit: 1.0, // Default 1s
     memoryLimit: 256, // Default 256MB
     statement: "",
     inputFormat: "",
@@ -113,17 +113,25 @@ const Admin = () => {
         border: "1px solid #27272a",
       }}
     >
-      <h2 style={{ marginBottom: "10px", fontSize: "1.8rem", textAlign: "center" }}>
+      <h2
+        style={{
+          marginBottom: "10px",
+          fontSize: "1.8rem",
+          textAlign: "center",
+        }}
+      >
         Admin Panel
       </h2>
-      <p style={{ textAlign: "center", color: "#71717a", marginBottom: "30px" }}>
+      <p
+        style={{ textAlign: "center", color: "#71717a", marginBottom: "30px" }}
+      >
         Create a new coding problem
       </p>
 
       <form onSubmit={handleSubmit}>
         {/* --- Section 1: General Info --- */}
         <div style={sectionHeaderStyle}>1. General Information</div>
-        
+
         <label style={labelStyle}>Problem Title</label>
         <input
           type="text"
@@ -151,14 +159,21 @@ const Admin = () => {
           </div>
           <div style={{ flex: 1 }}>
             <label style={labelStyle}>Theme / Category</label>
-            <input
-              type="text"
+            <select
               name="theme"
-              placeholder="e.g. contest"
               value={form.theme}
               onChange={handleChange}
-              style={inputStyle}
-            />
+              required
+              style={{
+                ...inputStyle,
+                cursor: "pointer",
+              }}
+            >
+              <option value="">Select Theme</option>
+              <option value="predict">Predict</option>
+              <option value="mcq">MCQ</option>
+              <option value="contest">Contest</option>
+            </select>
           </div>
         </div>
 
@@ -237,7 +252,7 @@ const Admin = () => {
 
         <label style={labelStyle}>Constraints</label>
         <textarea
-          name="contraints" 
+          name="contraints"
           placeholder="e.g. 1 <= N <= 10^5"
           value={form.contraints}
           onChange={handleChange}
@@ -246,7 +261,7 @@ const Admin = () => {
 
         {/* --- Section 3: Test Cases --- */}
         <div style={sectionHeaderStyle}>3. Test Cases</div>
-        
+
         <div style={{ display: "flex", gap: "16px" }}>
           <div style={{ flex: 1 }}>
             <label style={labelStyle}>Sample Input (Public)</label>
@@ -293,7 +308,7 @@ const Admin = () => {
             />
           </div>
         </div>
-        
+
         {/* --- Section 4: Extras --- */}
         <div style={sectionHeaderStyle}>4. Extras</div>
         <label style={labelStyle}>Options (for MCQs - one per line)</label>

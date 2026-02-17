@@ -1,4 +1,4 @@
-import { getInformation } from "@/api/auth";
+import { getInformation, submitMcq } from "@/api/auth";
 import { useAuth } from "@/auth/AuthContext";
 import { Clock, HelpCircle, LayoutGrid, Loader2, Trophy } from "lucide-react";
 import { useEffect, useState } from "react";
@@ -41,15 +41,13 @@ const Mcq = () => {
   const currentQuestion = questions[currentIndex];
   const isLastQuestion = currentIndex === questions.length - 1;
 
-  const calculateAndFinish = (finalAnswers) => {
-    let score = 0;
-    questions.forEach((q, index) => {
-      const selected = finalAnswers[index];
-      if (selected && selected.trim() === q.actualTestOutput?.trim()) {
-        score++;
-      }
-    });
-    setFinalScore(score);
+  const calculateAndFinish = async (finalAnswers) => {
+    const response = await submitMcq({
+      finalAnswers ,
+      matchId
+    })
+
+    setFinalScore(response.data.score);
     setIsSubmitted(true);
   };
 

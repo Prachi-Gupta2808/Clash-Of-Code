@@ -1,4 +1,4 @@
-import { getInformation } from "@/api/auth";
+import { getInformation, submitOutput } from "@/api/auth";
 import { useAuth } from "@/auth/AuthContext";
 import Editor from "@monaco-editor/react";
 import {
@@ -70,34 +70,28 @@ const Predict = () => {
     }));
   };
 
-  const handlePrev = () => {
-    if (!isFirstQuestion) setCurrentIndex((prev) => prev - 1);
-  };
-
   const handleNext = () => {
     if (!isLastQuestion) setCurrentIndex((prev) => prev + 1);
   };
 
-  const handleSubmitTest = () => {
+  const handleSubmitTest = async () => {
     // Optional: Confirmation before submitting
     if (
       !window.confirm(
-        "Are you sure you want to submit your test? You cannot change answers afterwards."
+        "Are you sure you want to submit your test? You cannot change answers afterwards.",
       )
     )
       return;
 
     // Calculate Score
-    let score = 0;
-    questions.forEach((q, index) => {
-      const userAnswer = normalize(userAnswers[index]);
-      const actualAnswer = normalize(q.actualTestOutput);
-      if (userAnswer === actualAnswer) {
-        score++;
-      }
+    const payload = questions.map((q, index) => userAnswers[index] || "");
+
+    const response = await submitOutput({
+      finalAnswers: payload,
+      matchId,
     });
 
-    setFinalScore(score);
+    setFinalScore(response.data.score);
     setIsSubmitted(true);
   };
 
@@ -249,34 +243,17 @@ const Predict = () => {
           </div>
 
           <div className="h-16 flex items-center gap-4 border-t border-[#27272a] pt-6">
-            <button
-              onClick={handlePrev}
-              disabled={isFirstQuestion}
-              className={`
-                h-12 px-6 rounded-lg text-sm font-bold uppercase tracking-wide transition-all flex items-center gap-2
-                ${
-                  isFirstQuestion
-                    ? "bg-transparent text-gray-700 cursor-not-allowed border border-[#27272a]"
-                    : "bg-[#27272a] text-gray-300 hover:bg-[#3f3f46] hover:text-white cursor-pointer"
-                }
-              `}
-            >
-              <ArrowLeft className="w-4 h-4" /> Prev
-            </button>
-
-            <div className="flex-1"></div>
-
             {isLastQuestion ? (
               <button
                 onClick={handleSubmitTest}
-                className="h-12 px-8 rounded-lg text-sm font-bold uppercase tracking-wide bg-(--c4) hover:bg-(--c3) text-white shadow-lg shadow-(--c4)/20 active:scale-[0.98] cursor-pointer transition-all flex items-center gap-2"
+                className="h-12 w-full px-8 rounded-lg text-sm font-bold uppercase tracking-wide bg-(--c4) hover:bg-(--c3) text-white shadow-lg shadow-(--c4)/20 active:scale-[0.98] cursor-pointer transition-all flex items-center justify-center gap-2"
               >
                 Submit Test <CheckCircle2 className="w-5 h-5" />
               </button>
             ) : (
               <button
                 onClick={handleNext}
-                className="h-12 px-8 rounded-lg text-sm font-bold uppercase tracking-wide bg-white text-black hover:bg-gray-200 shadow-lg active:scale-[0.98] cursor-pointer transition-all flex items-center gap-2"
+                className="h-12 w-full px-8 rounded-lg text-sm font-bold uppercase tracking-wide bg-white text-black hover:bg-gray-200 shadow-lg active:scale-[0.98] cursor-pointer transition-all flex items-center justify-center gap-2"
               >
                 Next <ArrowRight className="w-5 h-5" />
               </button>

@@ -46,7 +46,6 @@ exports.addQuestion = async (req, res) => {
       ? normalize(preTestOutput)
       : "";
     const normalizedActualTestOutput = normalize(actualTestOutput);
-    statement = normalize(statement) ;
     inputFormat = normalize(inputFormat) ;
     outputFormat = normalize(outputFormat) ;
 
