@@ -32,7 +32,12 @@ const submissionSchema = new mongoose.Schema(
 
     compilationTime: { type: Number , default: 0 },  
     executionTime: { type: Number , default: 0 },    
-    memoryTaken: { type: Number , default: 0 },      
+    memoryTaken: { type: Number , default: 0 }, 
+    userInput : [
+      {
+        type : String
+      }
+    ],
 
     error: String,
   },
