@@ -1,33 +1,33 @@
+const User = require("../models/User.model");
+const Question = require("../models/Question.model");
 const Match = require("../models/Match.model");
 
-exports.getMatchInformation = async (req, res) => {
-  try {
-    const { matchId } = req.body;
+exports.createMatch = async (req, res) => {
+  let roomId = req.body.roomId;
 
-    const matchDets = await Match.findOne({ matchId })
-      .populate({
-        path: "questions",
-        select: `
-          title
-          statement
-          inputFormat
-          outputFormat
-          constraints
-          preTest
-          preTestOutput
-          timeLimit
-          memoryLimit
-          rating
-          tags
-          theme
-          options
-        `,
-      });
+  const questions = await Question.aggregate([
+    { $match: { theme: "contest" } },
+    { $sample: { size: 1 } },
+  ]);
 
-    return res.status(200).json(matchDets);
-
-  } catch (err) {
-    console.error(err);
-    return res.status(500).json({ error: "Internal Server Error" });
+  if (questions.length === 0) {
+    return res.stats(404).send({
+      msg: "No question found",
+    });
   }
+
+  const newMatch = await Match.create({
+    player1: "6981d89fdafc2f16afd3a4f3",
+    player2: "6982194bd23661897ab2593d",
+    matchId: roomId,
+    theme: "contest",
+    isChallenged: false,
+    questions: questions.map((q) => q._id),
+    status: "ONGOING",
+  });
+
+  return res.status(202).send({
+    msg: "Match Created Successfully",
+    questions
+  });
 };
