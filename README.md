@@ -4,6 +4,11 @@
 It combines competitive programming, esports-style matchmaking, win streaks, and Monkeytype-inspired performance analytics.
 
 > Think **Codeforces + LeetCode + real-time duels**.
+> > Experience real-time coding battles in action ⚔️
+
+https://github.com/user-attachments/assets/23b9f931-6767-496a-93e3-f5b4cd5e6b70
+
+
 
 ---
 
