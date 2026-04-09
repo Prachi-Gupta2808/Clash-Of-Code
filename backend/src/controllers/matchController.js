@@ -25,9 +25,24 @@ exports.createMatch = async (req, res) => {
     questions: questions.map((q) => q._id),
     status: "ONGOING",
   });
+  console.log("created") ;
 
   return res.status(202).send({
     msg: "Match Created Successfully",
     questions
   });
 };
+
+exports.getInformation = async (req , res) => {
+  const matchId = req.body.matchId;
+  
+  // don't include actualTest and actualTestOutput in the response
+  const match = await Match.findOne({ matchId }).populate("questions").select("-actualTest -actualTestOutput");
+
+  if(!match) {
+    return res.status(404).send({
+      msg : "Match Not Found"
+    })
+  }
+  return res.status(200).send(match)
+}

@@ -23,6 +23,8 @@ const runBatchForMode = async (mode, io) => {
     l += 2;
     let roomId1 = randomUUID();
     const questionSet1 = await createMatch(player1.userId, player2.userId, roomId1, mode);
+    console.log(questionSet1);
+    
 
     leaveLobby(player1.userId, mode);
     leaveLobby(player2.userId, mode);
@@ -58,6 +60,8 @@ const runBatchForMode = async (mode, io) => {
       let roomId2 = randomUUID();
 
       const questionSet2 = await createMatch(player3.userId, player4.userId, roomId2, mode);
+      console.log(questionSet2);
+      
 
       io.sockets.sockets.get(player3.socketId)?.join(roomId2);
       io.sockets.sockets.get(player4.socketId)?.join(roomId2);

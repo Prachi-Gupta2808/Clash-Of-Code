@@ -38,7 +38,9 @@ const Contest = () => {
 
     const fetchQuestions = async () => {
       try {
+        console.log(matchId);
         const matchInfo = await getInformation(matchId);
+        
         if (matchInfo && matchInfo.data.questions.length > 0) {
           setQuestion(matchInfo.data.questions[0]);
         }
