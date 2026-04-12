@@ -47,14 +47,17 @@ export const cancelPendingRequest = (requestId) =>
 
 export const addQuestion = (data) => API.post("/admin/add", data);
 
-export const getInformation = (data) => API.post("/match/getinfo" , {
-  matchId : data
-});
+export const getInformation = (data) =>
+  API.post("/match/getinfo", {
+    matchId: data,
+  });
 
 export const getAnalytics = (data) => API.post(`/match/getanalytics/${data}`);
 
-export const submitCode = (data) => API.post("/submit/contest" , data);
+export const submitCode = (data) => API.post("/submit/contest", data);
 
-export const submitOutput = (data) => API.post("/submit/predict" , data);
+export const submitOutput = (data) => API.post("/submit/predict", data);
 
-export const submitMcq = (data) => API.post("/submit/mcq" , data);
+export const submitMcq = (data) => API.post("/submit/mcq", data);
+
+export const getRecentMatches = () => API.get("/match/recent");
