@@ -13,6 +13,7 @@ import SignUp from "./pages/SignUp";
 import ThemeSelect from "./pages/ThemeSelect";
 import Playground from "./pages/Playground";
 import AfterMatch from "./pages/AfterMatch";
+import Analytics from "./pages/Analytics";
 
 function App() {
   const { user, loading } = useAuth();
@@ -53,6 +54,7 @@ function App() {
           <Route path="/lobby/:mode" element={<Lobby />} />
           <Route path="/match/:theme/:matchId" element={<Playground />} />
           <Route path="/post-match" element={<AfterMatch />} />
+          <Route path="/analytics/:matchId" element={<Analytics />} />
         </Route>
       </Routes>
     </>

@@ -16,6 +16,22 @@ const matchSchema = new mongoose.Schema(
       required: true,
       unique: true,
     },
+    startTime: Date,
+    endTime: Date,
+    submissions: {
+      type : [{
+        userId: mongoose.Schema.Types.ObjectId,
+        answers: [String],
+        score: Number,
+        submittedAt: Date,
+        submissionTimes: [Date],
+      }],
+      default : []
+    },
+    resultDeclared: {
+      type: Boolean,
+      default: false
+    },
     status: {
       type: String,
       enum: ["ONGOING", "FINISHED", "CANCELLED"],

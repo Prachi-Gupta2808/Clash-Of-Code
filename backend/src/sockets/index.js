@@ -24,5 +24,10 @@ module.exports = function initSockets(io) {
       leaveLobby(userId, "contest");
       console.log("❌ Disconnected:", userId);
     });
+
+    socket.on("JOIN_ROOM" , (matchID) => {
+      socket.join(matchID) ;
+      console.log("user_joined room") ;
+    })
   });
 };

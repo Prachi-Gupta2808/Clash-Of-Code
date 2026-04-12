@@ -12,24 +12,83 @@ import {
   Terminal,
   Trophy,
 } from "lucide-react";
-import { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
+import { useEffect, useState, useRef } from "react";
+import { useParams, useNavigate } from "react-router-dom";
+import { io } from "socket.io-client";
+import AfterMatch from "../AfterMatch";
 
 const Predict = () => {
   const { user, loading } = useAuth();
   const { matchId } = useParams();
+  const socket = useRef(null);
+  const navigate = useNavigate();
 
-  // Data State
   const [questions, setQuestions] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Quiz State
   const [currentIndex, setCurrentIndex] = useState(0);
-  const [userAnswers, setUserAnswers] = useState({}); // Stores answers: { 0: "output1", 1: "output2" }
-  const [isSubmitted, setIsSubmitted] = useState(false); // Controls View (Quiz vs Result)
+  const [userAnswers, setUserAnswers] = useState({});
+  const [answerTimestamps, setAnswerTimestamps] = useState({});
+  const [isSubmitted, setIsSubmitted] = useState(false);
   const [finalScore, setFinalScore] = useState(0);
+  const [endTime, setEndTime] = useState(null);
+  const [waiting, setWaiting] = useState(false);
+  const [timeLeft, setTimeLeft] = useState(0);
+  const [submitting, setSubmitting] = useState(false);
 
-  // Fetch Questions
+  useEffect(() => {
+    if (!user || !matchId) return;
+
+    if (!socket.current) {
+      socket.current = io("http://localhost:5000", {
+        transports: ["polling", "websocket"],
+        withCredentials: true,
+      });
+    }
+
+    socket.current.on("connect", () => {
+      console.log("Connected ✅");
+    });
+
+    socket.current.emit("JOIN_ROOM", matchId);
+
+    socket.current.on("MATCH_RESULT", (data) => {
+      const myScore = data.scores.find((s) => s.userId === user._id)?.score ?? 0;
+
+      setFinalScore(myScore);
+      setIsSubmitted(true);
+      setWaiting(false);
+    });
+
+    socket.current.on("USER_SUBMITTED", ({ userId }) => {
+      if (userId !== user._id) {
+        console.log("Opponent submitted");
+      }
+    });
+
+    return () => {
+      socket.current?.disconnect();
+      socket.current = null;
+    };
+  }, [user, matchId]);
+
+  useEffect(() => {
+    if (!endTime) return;
+
+    const interval = setInterval(() => {
+      const remaining = Math.floor((new Date(endTime) - Date.now()) / 1000);
+
+      if (remaining <= 0) {
+        clearInterval(interval);
+        handleSubmitTest();
+      } else {
+        setTimeLeft(remaining);
+      }
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, [endTime]);
+
   useEffect(() => {
     if (!user || loading || !matchId) return;
 
@@ -37,6 +96,8 @@ const Predict = () => {
       try {
         setIsLoading(true);
         const matchInfo = await getInformation(matchId);
+        setEndTime(matchInfo.data.endTime);
+
         if (matchInfo && matchInfo.data.questions.length > 0) {
           setQuestions(matchInfo.data.questions);
         }
@@ -50,23 +111,26 @@ const Predict = () => {
     fetchQuestions();
   }, [user, loading, matchId]);
 
-  // Derived State
   const currentQuestion = questions[currentIndex];
   const isLastQuestion = currentIndex === questions.length - 1;
-  const isFirstQuestion = currentIndex === 0;
 
-  // Helper: Normalize strings for comparison
   const normalize = (str) => {
     if (!str) return "";
     return str.trim().replace(/\s+/g, " ");
   };
 
-  // Handlers
   const handleInputChange = (e) => {
     const val = e.target.value;
+    const timestamp = new Date().toISOString();
+
     setUserAnswers((prev) => ({
       ...prev,
       [currentIndex]: val,
+    }));
+
+    setAnswerTimestamps((prev) => ({
+      ...prev,
+      [currentIndex]: timestamp,
     }));
   };
 
@@ -74,37 +138,27 @@ const Predict = () => {
     if (!isLastQuestion) setCurrentIndex((prev) => prev + 1);
   };
 
-  const handleSubmitTest = async () => {
-    // Optional: Confirmation before submitting
-    if (
-      !window.confirm(
-        "Are you sure you want to submit your test? You cannot change answers afterwards.",
-      )
-    )
-      return;
+  const handleSubmitTest = async (auto = false) => {
+    if (submitting) return;
+    setSubmitting(true);
 
-    // Calculate Score
     const payload = questions.map((q, index) => userAnswers[index] || "");
+    const submissionTimes = questions.map((q, index) => answerTimestamps[index] || null);
 
-    const response = await submitOutput({
-      finalAnswers: payload,
-      matchId,
-    });
-
-    setFinalScore(response.data.score);
-    setIsSubmitted(true);
-  };
-
-  const handleRestart = () => {
-    if (window.confirm("Restarting will reset your score. Continue?")) {
-      setIsSubmitted(false);
-      setCurrentIndex(0);
-      setUserAnswers({});
-      setFinalScore(0);
+    try {
+      await submitOutput({
+        finalAnswers: payload,
+        submissionTimes,
+        matchId,
+      });
+      setWaiting(true);
+    } catch (err) {
+      alert("Submission failed");
+    } finally {
+      setSubmitting(false);
     }
   };
 
-  // --- Loading State ---
   if (isLoading) {
     return (
       <div className="flex w-full h-screen bg-[#0f0f0f] items-center justify-center text-gray-400">
@@ -114,12 +168,10 @@ const Predict = () => {
     );
   }
 
-  // --- Result View (After Submission) ---
   if (isSubmitted) {
     return (
       <div className="flex w-full h-screen bg-[#0f0f0f] text-gray-300 font-sans items-center justify-center">
         <div className="bg-[#18181b] p-12 rounded-2xl border border-[#27272a] text-center shadow-2xl max-w-lg w-full relative overflow-hidden">
-          {/* Background Glow */}
           <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-20 bg-(--c4) blur-[100px] opacity-20 pointer-events-none"></div>
 
           <Trophy className="w-20 h-20 text-yellow-500 mx-auto mb-6 drop-shadow-lg" />
@@ -144,20 +196,25 @@ const Predict = () => {
           </div>
 
           <button
-            onClick={handleRestart}
-            className="w-full py-4 bg-[#27272a] hover:bg-[#3f3f46] text-white rounded-xl font-bold text-lg transition-all flex items-center justify-center gap-2"
+            onClick={() => navigate(`/analytics/${matchId}`)}
+            className="w-full py-4 bg-[#27272a] hover:bg-[#3f3f46] text-white rounded-xl font-bold text-lg transition-all flex items-center justify-center gap-2 cursor-pointer"
           >
-            <RotateCcw className="w-5 h-5" /> Retake Assessment
+            <RotateCcw className="w-5 h-5" /> Go to Analytics
           </button>
         </div>
       </div>
     );
   }
 
+  if (waiting) {
+    return (
+      <AfterMatch />
+    );
+  }
+
   return (
     <div className="flex w-full h-screen bg-[#0f0f0f] text-gray-300 font-sans overflow-hidden">
       <div className="w-1/2 h-full flex flex-col border-r border-[#27272a] bg-[#18181b]">
-        {/* Header */}
         <div className="h-16 border-b border-[#27272a] flex flex-col justify-center px-6 bg-[#18181b]">
           <div className="flex justify-between items-center mb-1">
             <h2 className="font-semibold text-white tracking-wide flex items-center gap-2">
@@ -182,7 +239,7 @@ const Predict = () => {
           <Editor
             height="100%"
             width="100%"
-            language="cpp" // Dynamic based on question if needed
+            language="cpp"
             value={currentQuestion?.statement || "// No code provided"}
             theme="vs-dark"
             options={{
@@ -201,7 +258,6 @@ const Predict = () => {
       </div>
 
       <div className="w-1/2 h-full flex flex-col bg-[#0f0f0f]">
-        {/* Header */}
         <div className="h-16 border-b border-[#27272a] bg-[#18181b] flex items-center justify-between px-6">
           <div className="flex items-center gap-2 text-sm font-medium text-gray-400">
             <Terminal className="w-5 h-5 text-blue-400" />

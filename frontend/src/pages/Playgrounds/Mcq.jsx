@@ -1,22 +1,82 @@
 import { getInformation, submitMcq } from "@/api/auth";
 import { useAuth } from "@/auth/AuthContext";
 import { Clock, HelpCircle, LayoutGrid, Loader2, Trophy } from "lucide-react";
-import { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
+import { useEffect, useState, useRef } from "react";
+import { useParams, useNavigate } from "react-router-dom";
+import { io } from "socket.io-client";
+import AfterMatch from "../AfterMatch";
 
 const Mcq = () => {
   const { user, loading } = useAuth();
   const { matchId } = useParams();
+  const navigate = useNavigate();
+  const socket = useRef(null);
 
-  // --- State ---
   const [questions, setQuestions] = useState([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [userAnswers, setUserAnswers] = useState({});
+  const [answerTimestamps, setAnswerTimestamps] = useState({});
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [finalScore, setFinalScore] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
+  const [endTime, setEndTime] = useState(null);
+  const [waiting, setWaiting] = useState(false);
+  const [timeLeft, setTimeLeft] = useState(0);
+  const [submitting, setSubmitting] = useState(false);
 
-  // --- Fetch Data ---
+  useEffect(() => {
+    if (!user || !matchId) return;
+
+    if (!socket.current) {
+      socket.current = io("http://localhost:5000", {
+        transports: ["polling", "websocket"],
+        withCredentials: true,
+      });
+    }
+
+    socket.current.on("connect", () => {
+      console.log("Connected");
+    });
+
+    socket.current.emit("JOIN_ROOM", matchId);
+
+    socket.current.on("MATCH_RESULT", (data) => {
+      const myScore =
+        data.scores.find((s) => s.userId === user._id)?.score ?? 0;
+      setFinalScore(myScore);
+      setIsSubmitted(true);
+      setWaiting(false);
+    });
+
+    socket.current.on("USER_SUBMITTED", ({ userId }) => {
+      if (userId !== user._id) {
+        console.log("Opponent submitted");
+      }
+    });
+
+    return () => {
+      socket.current?.disconnect();
+      socket.current = null;
+    };
+  }, [user, matchId]);
+
+  useEffect(() => {
+    if (!endTime) return;
+
+    const interval = setInterval(() => {
+      const remaining = Math.floor((new Date(endTime) - Date.now()) / 1000);
+
+      if (remaining <= 0) {
+        clearInterval(interval);
+        handleSubmitTest();
+      } else {
+        setTimeLeft(remaining);
+      }
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, [endTime]);
+
   useEffect(() => {
     if (!user || loading || !matchId) return;
 
@@ -24,6 +84,8 @@ const Mcq = () => {
       try {
         setIsLoading(true);
         const matchInfo = await getInformation(matchId);
+        setEndTime(matchInfo.data.endTime);
+
         if (matchInfo?.data?.questions?.length > 0) {
           setQuestions(matchInfo.data.questions);
         }
@@ -37,29 +99,54 @@ const Mcq = () => {
     fetchQuestions();
   }, [user, loading, matchId]);
 
-  // --- Logic ---
   const currentQuestion = questions[currentIndex];
   const isLastQuestion = currentIndex === questions.length - 1;
 
-  const calculateAndFinish = async (finalAnswers) => {
-    const response = await submitMcq({
-      finalAnswers ,
-      matchId
-    })
+  const handleSubmitTest = async (
+    answers = userAnswers,
+    timestamps = answerTimestamps,
+  ) => {
+    if (submitting) return;
 
-    setFinalScore(response.data.score);
-    setIsSubmitted(true);
+    setSubmitting(true);
+
+    const finalAnswers = questions.map((_, index) => answers[index] || "");
+    const submissionTimes = questions.map(
+      (_, index) => timestamps[index] || null,
+    );
+
+    try {
+      await submitMcq({
+        finalAnswers,
+        submissionTimes,
+        matchId,
+      });
+
+      setWaiting(true);
+    } catch (err) {
+      console.error("Submission failed", err);
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   const handleOptionSelect = (option) => {
+    const timestamp = new Date().toISOString();
     const updatedAnswers = {
       ...userAnswers,
       [currentIndex]: option,
     };
+
+    const updatedTimestamps = {
+      ...answerTimestamps,
+      [currentIndex]: timestamp,
+    };
+
     setUserAnswers(updatedAnswers);
+    setAnswerTimestamps(updatedTimestamps);
 
     if (isLastQuestion) {
-      calculateAndFinish(updatedAnswers);
+      handleSubmitTest(updatedAnswers, updatedTimestamps);
     } else {
       setTimeout(() => {
         setCurrentIndex((prev) => prev + 1);
@@ -67,7 +154,6 @@ const Mcq = () => {
     }
   };
 
-  // --- Loading View ---
   if (isLoading) {
     return (
       <div className="flex w-full h-screen bg-[#0f0f0f] items-center justify-center text-gray-400 font-sans">
@@ -79,7 +165,6 @@ const Mcq = () => {
     );
   }
 
-  // --- Results View ---
   if (isSubmitted) {
     return (
       <div className="flex w-full h-screen bg-[#0f0f0f] text-gray-300 font-sans items-center justify-center">
@@ -104,15 +189,21 @@ const Mcq = () => {
             </div>
           </div>
 
-          <div className="mt-8 text-xs text-gray-500">
-            You may close this tab now.
-          </div>
+          <button
+            onClick={() => navigate(`/analytics/${matchId}`)}
+            className="w-full py-4 bg-[#27272a] hover:bg-[#3f3f46] text-white rounded-xl font-bold text-lg transition-all flex items-center justify-center gap-2 cursor-pointer"
+          >
+            Go to Analytics
+          </button>
         </div>
       </div>
     );
   }
 
-  // --- Main UI ---
+  if (waiting) {
+    return <AfterMatch />;
+  }
+
   return (
     <div className="flex w-full h-screen bg-[#0f0f0f] text-gray-300 font-sans overflow-hidden">
       <style>{`
@@ -122,9 +213,7 @@ const Mcq = () => {
         .custom-scrollbar::-webkit-scrollbar-thumb:hover { background-color: #52525b; }
       `}</style>
 
-      {/* ================= LEFT PANEL (55%): Question ================= */}
       <div className="w-[55%] h-full flex flex-col border-r border-[#27272a] bg-[#18181b]">
-        {/* Header */}
         <div className="h-14 border-b border-[#27272a] flex items-center justify-between px-6 bg-[#18181b]">
           <div className="flex items-center gap-2">
             <HelpCircle className="w-4 h-4 text-(--c4)" />
@@ -134,14 +223,18 @@ const Mcq = () => {
           </div>
           <div className="flex items-center gap-2 text-xs font-medium text-gray-500">
             <Clock className="w-3.5 h-3.5" />
-            <span>MCQ Mode</span>
+            <span>
+              {timeLeft > 0
+                ? `${Math.floor(timeLeft / 60)}:${(timeLeft % 60)
+                    .toString()
+                    .padStart(2, "0")}`
+                : "MCQ Mode"}
+            </span>
           </div>
         </div>
 
-        {/* Content Area */}
         <div className="flex-1 overflow-y-auto p-6 custom-scrollbar">
           <div className="max-w-3xl mx-auto">
-            {/* Question Text */}
             <div className="mb-6">
               <h1 className="text-xl md:text-2xl font-bold text-white leading-relaxed mb-4">
                 {currentQuestion?.statement || "Loading..."}
@@ -162,7 +255,6 @@ const Mcq = () => {
 
             <div className="h-px w-full bg-[#27272a] mb-6"></div>
 
-            {/* Options */}
             <div className="flex flex-col gap-3">
               {currentQuestion?.options &&
               currentQuestion.options.length > 0 ? (
@@ -183,13 +275,13 @@ const Mcq = () => {
                     >
                       <div
                         className={`
-                         w-6 h-6 rounded flex items-center justify-center text-xs font-bold border transition-colors
-                         ${
-                           isSelected
-                             ? "bg-white text-black border-white"
-                             : "bg-[#18181b] text-gray-500 border-[#3f3f46] group-hover:border-gray-500"
-                         }
-                      `}
+                          w-6 h-6 rounded flex items-center justify-center text-xs font-bold border transition-colors
+                          ${
+                            isSelected
+                              ? "bg-white text-black border-white"
+                              : "bg-[#18181b] text-gray-500 border-[#3f3f46] group-hover:border-gray-500"
+                          }
+                        `}
                       >
                         {String.fromCharCode(65 + idx)}
                       </div>
@@ -207,9 +299,7 @@ const Mcq = () => {
         </div>
       </div>
 
-      {/* ================= RIGHT PANEL (45%): Palette ================= */}
       <div className="w-[45%] h-full flex flex-col bg-[#0f0f0f]">
-        {/* Header */}
         <div className="h-14 border-b border-[#27272a] bg-[#18181b] flex items-center px-6">
           <div className="flex items-center gap-2 text-gray-300">
             <LayoutGrid className="w-4 h-4 text-gray-500" />
@@ -219,7 +309,6 @@ const Mcq = () => {
           </div>
         </div>
 
-        {/* Legend */}
         <div className="p-6 pb-2">
           <div className="flex justify-between text-xs font-medium text-gray-500 mb-4 bg-[#18181b] p-3 rounded-lg border border-[#27272a]">
             <div className="flex items-center gap-2">
@@ -234,9 +323,7 @@ const Mcq = () => {
           </div>
         </div>
 
-        {/* Grid (Smaller Elements) */}
         <div className="flex-1 overflow-y-auto px-6 custom-scrollbar">
-          {/* Changed grid-cols-6 to grid-cols-10 for smaller boxes */}
           <div className="grid grid-cols-10 gap-2 content-start">
             {questions.map((_, idx) => {
               const isCurrent = idx === currentIndex;
@@ -251,8 +338,8 @@ const Mcq = () => {
                       isCurrent
                         ? "bg-orange-500 text-white ring-1 ring-[#0f0f0f] scale-110 z-10"
                         : isAnswered
-                        ? "bg-green-600 text-white opacity-50"
-                        : "bg-[#18181b] border border-[#27272a] text-gray-600"
+                          ? "bg-green-600 text-white opacity-50"
+                          : "bg-[#18181b] border border-[#27272a] text-gray-600"
                     }
                   `}
                 >
@@ -263,7 +350,6 @@ const Mcq = () => {
           </div>
         </div>
 
-        {/* Footer Area */}
         <div className="p-4 border-t border-[#27272a] bg-[#18181b] text-center text-[10px] text-gray-600 uppercase tracking-widest">
           Auto-Save Enabled
         </div>

@@ -3,6 +3,7 @@ const { Server } = require("socket.io");
 const app = require("./app");
 const initSockets = require("./src/sockets/index");
 const { startMatchmaking } = require("./src/sockets/scheduler");
+const socketManager = require("./src/sockets/socket") ;
 
 const PORT = process.env.PORT || 5000;
 
@@ -16,6 +17,9 @@ const io = new Server(server, {
     credentials: true,
   },
 });
+
+// global socket object
+socketManager.setIO(io);
 
 // initialize socket logic
 initSockets(io) ;

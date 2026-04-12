@@ -26,7 +26,6 @@ const questionSchema = new mongoose.Schema(
     contraints: { 
       type: String,
     },
-
     timeLimit: {
       type: Number,
       default: 1.0,
@@ -35,7 +34,6 @@ const questionSchema = new mongoose.Schema(
       type: Number, 
       default: 256,
     },
-    // ------------------
     statement: {
       type: String,
       required: true,

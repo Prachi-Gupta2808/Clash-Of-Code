@@ -8,40 +8,57 @@ const submissionSchema = new mongoose.Schema(
       required: true,
     },
 
-    match: {
+    matchId: {
       type: String,
       required: true,
+      index: true,
+    },
+
+    type: {
+      type: String,
+      enum: ["contest", "mcq", "predict"],
     },
 
     language: {
       type: String,
       enum: ["cpp", "java", "python"],
-      required: true,
     },
 
-    code: {
-      type: String,
-      required: true,
-    },
+    code: String,
 
     status: {
       type: String,
       enum: ["AC", "WA", "TLE", "MLE", "RE", "CE"],
-      required: true,
     },
 
-    compilationTime: { type: Number , default: 0 },  
-    executionTime: { type: Number , default: 0 },    
-    memoryTaken: { type: Number , default: 0 }, 
-    userInput : [
-      {
-        type : String
-      }
-    ],
+    compilationTime: { type: Number, default: 0 },
+    executionTime: { type: Number, default: 0 },
+    memoryTaken: { type: Number, default: 0 },
 
+    selectedOptions: {
+      type: [String],
+      default: [],
+    },
+
+    chosenAnswers: {
+      type: [String],
+      default: [],
+    },
+
+    score: {
+      type: Number,
+      default: 0,
+    },
+
+    submissionTimes : {
+      type: [Date] ,
+      default: []
+    },
     error: String,
   },
   { timestamps: true }
 );
+
+submissionSchema.index({ user: 1, matchId: 1 });
 
 module.exports = mongoose.model("Submission", submissionSchema);
