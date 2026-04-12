@@ -59,7 +59,7 @@ const runBatchForMode = async (mode, io) => {
       r -= 2;
       let roomId2 = randomUUID();
 
-      const questionSet2 = await createMatch(player3.userId, player4.userId, roomId2, mode);
+      const questionSet2 = await createMatch(player3.userId, player4.userId, roomId2, mode , );
       console.log(questionSet2);
       
 

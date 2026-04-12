@@ -1,4 +1,5 @@
 const mongoose = require("mongoose");
+
 const matchSchema = new mongoose.Schema(
   {
     player1: {
@@ -11,59 +12,100 @@ const matchSchema = new mongoose.Schema(
       ref: "User",
       required: true,
     },
+
     matchId: {
       type: String,
       required: true,
       unique: true,
     },
-    startTime: Date,
-    endTime: Date,
-    submissions: {
-      type : [{
-        userId: mongoose.Schema.Types.ObjectId,
-        answers: [String],
-        score: Number,
-        submittedAt: Date,
-        submissionTimes: [Date],
-      }],
-      default : []
+
+    startTime: {
+      type: Date,
     },
+    endTime: {
+      type: Date,
+    },
+
+    submissions: {
+      type: [
+        {
+          userId: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: "User",
+          },
+          answers: [String],
+          score: Number,
+          submittedAt: Date,
+          submissionTimes: [Date],
+        },
+      ],
+      default: [],
+    },
+
     resultDeclared: {
       type: Boolean,
-      default: false
+      default: false,
     },
+
     status: {
       type: String,
       enum: ["ONGOING", "FINISHED", "CANCELLED"],
       default: "ONGOING",
     },
+
     winner: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
       default: null,
     },
+
     theme: {
       type: String,
       enum: ["contest", "mcq", "predict"],
-      required: true
+      required: true,
     },
+
     isChallenged: {
       type: Boolean,
-      default: false
+      default: false,
     },
+
     questions: [
       {
         type: mongoose.Schema.Types.ObjectId,
         ref: "Question",
       },
     ],
+
     ratingChange: {
-      p1: { type: Number, default: 0 },
-      p2: { type: Number, default: 0 },
+      p1: {
+        id: {
+          type: mongoose.Schema.Types.ObjectId,
+          ref: "User",
+        },
+        delta: {
+          type: Number,
+          default: 0,
+        },
+      },
+      p2: {
+        id: {
+          type: mongoose.Schema.Types.ObjectId,
+          ref: "User",
+        },
+        delta: {
+          type: Number,
+          default: 0,
+        },
+      },
     },
   },
-  { timestamps: true },
+  { timestamps: true }
 );
 
+// index for faster queries
+matchSchema.index({ player1: 1, player2: 1 });
+
 const MatchModel = mongoose.model("Match", matchSchema);
+
 module.exports = MatchModel;
