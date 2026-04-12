@@ -1,4 +1,5 @@
 // src/layouts/AppLayout.jsx
+import ChallengeNotification from "@/components/ChallengeNotification";
 import { BackgroundRippleEffect } from "@/components/ui/background-ripple-effect";
 import { Outlet } from "react-router-dom";
 
@@ -12,6 +13,7 @@ const AppLayout = () => {
 
       {/* 📜 SCROLLABLE CONTENT */}
       <div className="relative z-10 w-full h-screen overflow-y-auto overflow-x-hidden">
+        <ChallengeNotification />
         <Outlet />
       </div>
     </div>

@@ -1,5 +1,6 @@
 import { createContext, useContext, useEffect, useState } from "react";
-import { getMe, logout as logoutApi } from "../api/auth";
+import { getMe } from "../api/auth";
+import { socket } from "../components/socket/socket";
 
 const AuthContext = createContext(null);
 
@@ -12,8 +13,10 @@ export const AuthProvider = ({ children }) => {
       try {
         const res = await getMe();
         setUser(res.data.user);
+        socket.connect();
       } catch {
         setUser(null);
+        socket.disconnect();
       } finally {
         setLoading(false);
       }
