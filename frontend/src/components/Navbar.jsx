@@ -4,39 +4,22 @@ import { FloatingNav } from "./ui/floating-navbar";
 
 const Navbar = () => {
   const navItems = [
-    {
-      name: "Home",
-      link: "/",
-      icon: <FaHome />,
-    },
-    {
-      name: "Notifications",
-      link: "/notifications",
-      icon: <FaBell />,
-    },
-    {
-      name: "Dashboard",
-      link: "/dashboard",
-      icon: <FaChartLine />,
-    },
-    {
-      name: "Profile",
-      link: "/profile",
-      icon: <FaUser />,
-    },
+    { name: "Home", link: "/", icon: <FaHome /> },
+    { name: "Alerts", link: "/notifications", icon: <FaBell /> },
+    { name: "Stats", link: "/dashboard", icon: <FaChartLine /> },
+    { name: "Profile", link: "/profile", icon: <FaUser /> },
   ];
 
   return (
     <FloatingNav
       navItems={navItems}
-      className="gap-3 fixed top-0 left-0 z-[9999]"
+      className="gap-1 sm:gap-3 fixed top-0 left-0 z-[9999]"
     >
-      {/* Profile Avatar */}
-      <div className="ml-2">
+      <div className="ml-1 sm:ml-2">
         <img
           src="https://i.pravatar.cc/40"
           alt="User Profile"
-          className="h-9 w-9 rounded-full object-cover border border-neutral-300 dark:border-neutral-700 cursor-pointer"
+          className="h-7 w-7 sm:h-9 sm:w-9 rounded-full object-cover border border-neutral-300 dark:border-neutral-700 cursor-pointer"
         />
       </div>
     </FloatingNav>

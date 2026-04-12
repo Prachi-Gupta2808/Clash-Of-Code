@@ -4,7 +4,6 @@ import { useNavigate } from "react-router-dom";
 import { getMe, googleAuth, login } from "../api/auth";
 import { useAuth } from "../auth/AuthContext";
 import { Vortex } from "../components/ui/vortex";
-import { socket } from "@/components/socket/socket";
 
 const Login = () => {
   const navigate = useNavigate();
@@ -25,13 +24,8 @@ const Login = () => {
     setLoading(true);
 
     try {
-      // 1️⃣ login (cookie set by backend)
       await login(formData);
-
-      // 2️⃣ get verified user
       const res = await getMe();
-
-      // 3️⃣ update AuthContext
       setUser(res.data.user);
       navigate("/");
     } catch (err) {
@@ -47,16 +41,8 @@ const Login = () => {
       if (!credentialResponse.credential) {
         return alert("Google login failed");
       }
-
-      // 1️⃣ google auth
-      console.log(credentialResponse);
-      
       await googleAuth(credentialResponse.credential);
-
-      // 2️⃣ get verified user
       const res = await getMe();
-
-      // 3️⃣ update context
       setUser(res.data.user);
       navigate("/");
     } catch (err) {
@@ -74,9 +60,9 @@ const Login = () => {
         />
       </div>
 
-      <div className="relative z-10 flex items-center justify-center h-full">
-        <div className="bg-black/30 backdrop-blur-md border border-white/20 text-white p-10 rounded-xl max-w-md w-full space-y-6 shadow-lg flex flex-col items-center">
-          <h2 className="text-3xl font-bold text-center">Login</h2>
+      <div className="relative z-10 flex items-center justify-center h-full px-4">
+        <div className="bg-black/30 backdrop-blur-md border border-white/20 text-white p-6 sm:p-10 rounded-xl w-full max-w-sm sm:max-w-md space-y-6 shadow-lg flex flex-col items-center">
+          <h2 className="text-2xl sm:text-3xl font-bold text-center">Login</h2>
 
           <form onSubmit={handleSubmit} className="w-full flex flex-col gap-4">
             <input
@@ -85,7 +71,7 @@ const Login = () => {
               placeholder="Email"
               value={formData.email}
               onChange={handleChange}
-              className="w-full px-4 py-2 rounded-md bg-gray-800/50 focus:ring-2 focus:ring-[#F2613F]"
+              className="w-full px-4 py-2.5 rounded-md bg-gray-800/50 focus:ring-2 focus:ring-[#F2613F] text-sm sm:text-base outline-none"
               required
             />
             <input
@@ -94,31 +80,43 @@ const Login = () => {
               placeholder="Password"
               value={formData.password}
               onChange={handleChange}
-              className="w-full px-4 py-2 rounded-md bg-gray-800/50 focus:ring-2 focus:ring-[#F2613F]"
+              className="w-full px-4 py-2.5 rounded-md bg-gray-800/50 focus:ring-2 focus:ring-[#F2613F] text-sm sm:text-base outline-none"
               required
             />
             <button
               type="submit"
-              className="w-full bg-[#F2613F] hover:bg-[#9B3922] py-2 rounded-md font-semibold"
+              className="w-full bg-[#F2613F] hover:bg-[#9B3922] py-2.5 rounded-md font-semibold text-sm sm:text-base transition-all active:scale-95 cursor-pointer"
               disabled={loading}
             >
               {loading ? "Logging in..." : "Login"}
             </button>
           </form>
 
-          <GoogleLogin
-            onSuccess={handleGoogleLogin}
-            onError={() => alert("Google login failed")}
-            theme="filled_black"
-            size="large"
-            width="320"
-          />
+          <div className="w-full flex items-center gap-3">
+            <div className="flex-1 h-px bg-white/10" />
+            <span className="text-xs text-gray-500 uppercase tracking-widest">
+              or
+            </span>
+            <div className="flex-1 h-px bg-white/10" />
+          </div>
+
+          <div className="w-full flex justify-center">
+            <div className="w-full flex justify-center overflow-hidden">
+              <GoogleLogin
+                onSuccess={handleGoogleLogin}
+                onError={() => alert("Google login failed")}
+                theme="filled_black"
+                size="large"
+                width="260"
+              />
+            </div>
+          </div>
 
           <p className="text-sm text-center text-gray-400">
             New here?{" "}
             <span
               onClick={() => navigate("/signup")}
-              className="text-[#F2613F] cursor-pointer font-medium"
+              className="text-[#F2613F] cursor-pointer font-medium hover:underline"
             >
               Create an account
             </span>

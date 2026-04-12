@@ -1,11 +1,9 @@
 "use client";
-import axios from "axios";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 import { cn } from "@/lib/utils";
 import {
-  IconArrowLeft,
   IconBell,
   IconHistory,
   IconUserBolt,
@@ -14,34 +12,33 @@ import {
 import { motion } from "motion/react";
 import { Sidebar, SidebarBody, SidebarLink } from "../components/ui/sidebar";
 
+import { useAuth } from "@/auth/AuthContext";
+import { socket } from "@/components/socket/socket";
+import { MdLogout } from "react-icons/md";
+import { logout } from "../api/auth";
 import FriendsSection from "./DashboardSections/FriendsSection";
 import MatchSection from "./DashboardSections/MatchSection";
 import NotificationSection from "./DashboardSections/NotificationSection";
 import ProfileSection from "./DashboardSections/ProfileSection";
-import { MdLogout } from "react-icons/md";
-import { useAuth } from "@/auth/AuthContext";
-import { logout } from "../api/auth";
-import { socket } from "@/components/socket/socket";
 
 const Dashboard = () => {
-  const { user , setUser } = useAuth() ;
+  const { user, setUser } = useAuth();
   const navigate = useNavigate();
   const [open, setOpen] = useState(false);
   const [activeSection, setActiveSection] = useState("profile");
 
   useEffect(() => {
-    if(!user) {
+    if (!user) {
       navigate("/login");
     }
-  }, [])
-  
+  }, []);
 
   const handleLogout = async () => {
     try {
       await logout();
       setUser(null);
       navigate("/login");
-      socket.disconnect() ;
+      socket.disconnect();
     } catch (err) {
       console.error("Logout failed:", err);
       alert("Logout failed. Please try again.");
