@@ -3,6 +3,7 @@ import { socket } from "@/components/socket/socket";
 import React, { use, useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { useNavigate } from "react-router-dom";
+import WaitingForOpponent from "./WaitingForOpponent"
 
 const Lobby = () => {
   const { mode } = useParams();
@@ -30,10 +31,8 @@ const Lobby = () => {
   }, [mode, loading, user]);
 
   return (
-    <div className="w-full h-screen flex justify-center items-center text-white">
-      <h1>
-        {status === "WAITING" ? "Waiting for opponent..." : status}
-      </h1>
+    <div>
+      <WaitingForOpponent />
     </div>
   );
 };
