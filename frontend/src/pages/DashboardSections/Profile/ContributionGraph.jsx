@@ -1,37 +1,47 @@
 import { useMemo, useState } from "react";
 
-const generateYearData = () => {
-  const data = [];
+// Helper function to build a full 365-day array and merge API data
+const buildYearData = (apiData) => {
+  const dataMap = new Map();
+  // Map API data for quick lookups (assuming data looks like: { dateString: "2026-04-10", count: 3 })
+  if (Array.isArray(apiData)) {
+    apiData.forEach(item => dataMap.set(item.dateString, item.count));
+  }
+
+  const yearData = [];
   const today = new Date();
+  
+  // Generate the last 365 days
   for (let i = 364; i >= 0; i--) {
-    const d = new Date(today);
-    d.setDate(d.getDate() - i);
-
-    const rand = Math.random();
-    let count = 0;
-    if (rand > 0.8) count = Math.floor(Math.random() * 5);
-    if (rand > 0.95) count = Math.floor(Math.random() * 15) + 5;
-
-    data.push({
-      date: d,
-      dateString: d.toISOString().split("T")[0],
-      count: count,
+    const date = new Date();
+    date.setDate(today.getDate() - i);
+    
+    // Format to YYYY-MM-DD to match the API map string
+    const dateString = date.toISOString().split('T')[0];
+    
+    yearData.push({
+      date: date,
+      count: dataMap.get(dateString) || 0 // Default to 0 if no submissions that day
     });
   }
-  return data;
+  
+  return yearData;
 };
 
+// Helper for dynamic colors based on contribution count
 const getHeatmapColor = (count) => {
   if (count === 0) return "bg-[#161b22]";
   if (count <= 2) return "bg-[#FDBA74]";
   if (count <= 5) return "bg-[#FB923C]";
   if (count <= 10) return "bg-[#F97316]";
-  return "bg-[#EA580C]";
+  return "bg-[#EA580C]"; // High contribution
 };
 
-export default function ContributionGraph() {
+export default function Heatmap({ rawApiData = [] }) {
   const [hoveredData, setHoveredData] = useState(null);
-  const dailyData = useMemo(() => generateYearData(), []);
+  
+  // Feed the API prop into the helper function
+  const dailyData = useMemo(() => buildYearData(rawApiData), [rawApiData]);
 
   const weeks = useMemo(() => {
     const weeksArr = [];
@@ -131,13 +141,13 @@ export default function ContributionGraph() {
       </div>
       <div className="flex items-center gap-2 mt-4 text-xs text-gray-400 justify-end">
         <span>Less</span>
-        <div className="w-3 h-3 rounded-sm bg-[#161b22]" />
-        <div className="w-3 h-3 rounded-sm bg-[#FDBA74]" />
-        <div className="w-3 h-3 rounded-sm bg-[#FB923C]" />
-        <div className="w-3 h-3 rounded-sm bg-[#F97316]" />
-        <div className="w-3 h-3 rounded-sm bg-[#EA580C]" />
+        <div className="w-3 h-3 rounded-[2px] bg-[#161b22]" />
+        <div className="w-3 h-3 rounded-[2px] bg-[#FDBA74]" />
+        <div className="w-3 h-3 rounded-[2px] bg-[#FB923C]" />
+        <div className="w-3 h-3 rounded-[2px] bg-[#F97316]" />
+        <div className="w-3 h-3 rounded-[2px] bg-[#EA580C]" />
         <span>More</span>
       </div>
     </div>
   );
-};
+}

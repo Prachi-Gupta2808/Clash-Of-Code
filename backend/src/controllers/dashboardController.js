@@ -2,9 +2,12 @@ const User = require("../models/User.model");
 const FriendRequest = require("../models/FriendRequest.model");
 const ChallengeRequest = require("../models/ChallengeRequest.model");
 const ActiveDay = require("../models/ActiveDays.model");
+const Match = require("../models/Match.model");
+const { create } = require("../models/Question.model");
+const Submission = require("../models/Submission.model");
+const { getHeatmapData } = require("../utils/getHeatmapData");
 
 // Get sare dosts
-
 exports.getFriends = async (req, res) => {
   try {
     const user = await User.findById(req.user.id)
@@ -306,3 +309,24 @@ exports.cancelPendingRequest = async (req, res) => {
     res.status(500).json({ message: "Internal Server Error" });
   }
 };
+
+exports.getDashboardData = async (req, res) => {
+  try {
+    const ratingDeltas = [0];
+    const startingRating = 800;
+    const userRating = await User.findById(req.user._id).select("rating");
+    const userSubmissionsCount = await Submission.find({ user: req.user._id }).countDocuments();
+    const heatmapData = await getHeatmapData(req.user._id);
+
+    // filling the ratingDeltas array
+    const userMatches = await Match.find({ $or: [{ player1: req.user._id }, { player2: req.user._id }] }).populate("questions").sort({ createdAt: -1 });
+    userMatches.forEach((match) => {
+      ratingDeltas.push((match?.ratingChange?.p1?.id?.toString() === req.user._id.toString()) ? Math.floor(match.ratingChange.p1.delta) : Math.floor(match.ratingChange.p2.delta));
+    })
+
+    res.status(200).json({ ratingDeltas: ratingDeltas, rating: userRating.rating , startingRating: startingRating , userSubmissionCount : userSubmissionsCount , heatmapData : heatmapData }) ;
+  } catch (error) {
+    console.log("Error in getting dashboard data: ", error.message);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+}

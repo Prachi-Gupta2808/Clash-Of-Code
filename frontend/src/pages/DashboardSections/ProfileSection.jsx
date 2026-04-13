@@ -17,11 +17,10 @@ import React, {
 import { IoMdAdd, IoMdClose, IoMdCheckmark } from "react-icons/io";
 import Cropper from "react-easy-crop";
 import ContributionGraph from "./Profile/ContributionGraph";
-// import { uploadAvatar } from "@/api/auth"; // Unused import removed
 import axios from "axios";
 import { FiEdit } from "react-icons/fi";
+import { getDashboardData } from "@/api/auth";
 
-// --- 1. Canvas Utils for Cropping ---
 const createImage = (url) =>
   new Promise((resolve, reject) => {
     const image = new Image();
@@ -70,7 +69,6 @@ async function getCroppedImg(imageSrc, pixelCrop) {
   });
 }
 
-// --- 2. Crop Modal Component ---
 const ImageCropperModal = ({ imageSrc, onCancel }) => {
   const [crop, setCrop] = useState({ x: 0, y: 0 });
   const [zoom, setZoom] = useState(1);
@@ -155,18 +153,36 @@ const ImageCropperModal = ({ imageSrc, onCancel }) => {
   );
 };
 
-const sampleRatingDeltas = [0, 15, 24, -12, 45, -30, 10, 80, 12, -5, 35, 60, -100, 45, 20];
-const STARTING_RATING = 800;
-
 const ProfileSection = ({ user }) => {
   const [selectedImage, setSelectedImage] = useState(null);
-  
   const [username, setUsername] = useState("@" + (user?.username || "username"));
   const [inputDisabled, setInputDisabled] = useState(true);
   const [isSavingUser, setIsSavingUser] = useState(false);
   
   const fileInputRef = useRef(null);
   const usernameInputRef = useRef(null);
+  const [ratingDeltas, setRatingDeltas] = useState([]);
+  const [startingRating, setStartingRating] = useState(800);
+  const [userRating, setUserRating] = useState(800);
+  const [userSubmissionCount, setUserSubmissionCount] = useState(0);
+  const [heatmapData, setHeatmapData] = useState([]);
+
+  useEffect(() => {
+    const fetchDeltas = async () => {
+      try {
+        const response = await getDashboardData();
+        setRatingDeltas(response.data.ratingDeltas);
+        setStartingRating(response.data.startingRating) ;
+        setUserRating(response.data.rating) ;
+        setUserSubmissionCount(response.data.userSubmissionCount) ;
+        setHeatmapData(response.data.heatmapData) ;
+
+      } catch (error) {
+        console.error(error);
+      }
+    };
+    fetchDeltas();
+  }, []);
 
   const onFileChange = (e) => {
     if (e.target.files && e.target.files.length > 0) {
@@ -223,8 +239,8 @@ const ProfileSection = ({ user }) => {
   };
 
   const ratingData = useMemo(() => {
-    let currentRating = STARTING_RATING;
-    return sampleRatingDeltas.map((delta, index) => {
+    let currentRating = startingRating;
+    return ratingDeltas.map((delta, index) => {
       currentRating += delta;
       return {
         matchIndex: index,
@@ -233,7 +249,7 @@ const ProfileSection = ({ user }) => {
         delta: delta,
       };
     });
-  }, []);
+  }, [ratingDeltas]);
 
   const CustomGraphTooltip = ({ active, payload }) => {
     if (active && payload && payload.length) {
@@ -258,14 +274,9 @@ const ProfileSection = ({ user }) => {
   return (
     <>
       <div className="flex flex-col gap-6 w-full max-w-7xl mx-auto p-4">
-        {/* Top Section */}
         <div className="flex flex-col lg:flex-row gap-6">
-          
-          {/* Profile Card */}
           <div className="bg-neutral-900 rounded-xl p-6 w-full lg:w-1/3 text-white shadow-md border border-neutral-800">
             <div className="flex flex-col items-center">
-              
-              {/* Avatar Upload */}
               <label className="relative group cursor-pointer block mb-4">
                 <div className="darkCircle absolute inset-0 opacity-0 group-hover:opacity-100 bg-black/40 backdrop-blur-[5px] z-10 rounded-full flex justify-center items-center duration-300">
                   <IoMdAdd className="text-orange-500 text-5xl scale-0 opacity-0 group-hover:scale-100 group-hover:opacity-100 duration-200 drop-shadow-[0_0_8px_rgba(249,115,22,0.5)]" />
@@ -279,20 +290,13 @@ const ProfileSection = ({ user }) => {
                 <input type="file" accept="image/*" className="hidden" ref={fileInputRef} onChange={onFileChange} />
               </label>
 
-              {/* User Details */}
               <div className="text-center w-full flex flex-col items-center gap-1">
-                
-                {/* 1. Name - REVERTED TO ORIGINAL STYLE */}
                 <h2 className="text-3xl font-bold">
                   {user?.fullName || "User Name"}
                 </h2>
-                
-                {/* 2. Title - REVERTED TO ORIGINAL STYLE */}
                 <p className="text-xl text-(--c4) font-mono mt-1">
                   {user?.title || "Specialist"}
                 </p>
-                
-                {/* 3. Username: UPDATED IMPROVED LAYOUT */}
                 <div 
                   className={`
                     group/edit relative flex items-center justify-center gap-2 
@@ -314,8 +318,6 @@ const ProfileSection = ({ user }) => {
                     disabled={inputDisabled || isSavingUser}
                     spellCheck={false}
                   />
-                  
-                  {/* Buttons */}
                   <div className="flex items-center">
                     {inputDisabled ? (
                       <FiEdit 
@@ -344,19 +346,19 @@ const ProfileSection = ({ user }) => {
                     )}
                   </div>
                 </div>
-
               </div>
 
               <div className="w-full h-px bg-neutral-800 my-2"></div>
 
-              {/* Stats */}
               <div className="flex justify-between w-full px-4 text-sm">
                 <div className="text-center">
-                  <span className="block font-bold text-lg text-white">{ratingData[ratingData.length - 1].rating}</span>
+                  <span className="block font-bold text-lg text-white">
+                    {userRating}
+                  </span>
                   <span className="text-gray-500">Rating</span>
                 </div>
                 <div className="text-center">
-                  <span className="block font-bold text-lg text-white">453</span>
+                  <span className="block font-bold text-lg text-white">{userSubmissionCount}</span>
                   <span className="text-gray-500">Solved</span>
                 </div>
                 <div className="text-center">
@@ -367,7 +369,6 @@ const ProfileSection = ({ user }) => {
             </div>
           </div>
 
-          {/* Graph Section */}
           <div className="bg-neutral-900 rounded-xl p-6 w-full lg:w-2/3 text-white shadow-md border border-neutral-800 flex flex-col">
             <h3 className="text-lg font-semibold mb-6 flex items-center gap-2">
               <span className="w-2 h-6 bg-(--c4) rounded-full"></span>
@@ -387,7 +388,7 @@ const ProfileSection = ({ user }) => {
           </div>
         </div>
 
-        <ContributionGraph />
+        <ContributionGraph rawApiData={heatmapData} />
       </div>
 
       {selectedImage && (

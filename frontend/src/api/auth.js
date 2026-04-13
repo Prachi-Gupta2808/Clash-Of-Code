@@ -61,3 +61,5 @@ export const submitOutput = (data) => API.post("/submit/predict", data);
 export const submitMcq = (data) => API.post("/submit/mcq", data);
 
 export const getRecentMatches = () => API.get("/match/recent");
+
+export const getDashboardData = () => API.get("/dashboard/get-data");

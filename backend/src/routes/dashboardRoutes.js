@@ -54,4 +54,10 @@ router.delete(
   dashboardController.cancelPendingRequest
 );
 
+router.get(
+  "/get-data" ,
+  protect,
+  dashboardController.getDashboardData
+)
+
 module.exports = router;

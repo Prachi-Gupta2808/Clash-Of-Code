@@ -82,8 +82,8 @@ exports.decideWinner = async (match) => {
     let deltaA = ka * (Sa - Ea) ;
     let deltaB = kb * (Sb - Eb) ;
 
-    userA.rating = Math.round(userA.rating + deltaA) ;
-    userB.rating = Math.round(userB.rating + deltaB) ;
+    userA.rating = Math.max(0 , Math.round(userA.rating + deltaA)) ;
+    userB.rating = Math.max(0 , Math.round(userB.rating + deltaB)) ;
 
     await userA.save() ;
     await userB.save() ;
