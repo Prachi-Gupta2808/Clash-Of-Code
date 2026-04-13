@@ -42,7 +42,7 @@ exports.submitCode = async (req, res) => {
       return res.status(400).json({ msg: "Already submitted" });
     }
 
-    const compiledCode = await fetch(`${process.env.COMPILATION_URL}/compile`, {
+    const compiledCode = await fetch(`${process.env.AWS_BACKEND_INSTANCE_URL}/compile`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
