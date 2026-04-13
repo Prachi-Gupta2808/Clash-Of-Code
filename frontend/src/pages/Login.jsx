@@ -4,8 +4,10 @@ import { useNavigate } from "react-router-dom";
 import { getMe, googleAuth, login } from "../api/auth";
 import { useAuth } from "../auth/AuthContext";
 import { Vortex } from "../components/ui/vortex";
+import { useToast } from "@/components/ToastProvider";
 
 const Login = () => {
+  const { toast } = useToast();
   const navigate = useNavigate();
   const { setUser } = useAuth();
 
@@ -26,11 +28,13 @@ const Login = () => {
     try {
       await login(formData);
       const res = await getMe();
-      setUser(res.data.user);
-      navigate("/");
+      toast.success("Successfully logged in!");
+      setTimeout(() => {
+        setUser(res.data.user);
+      }, 1500);
     } catch (err) {
       console.error(err.response?.data);
-      alert(err.response?.data?.message || "Login failed");
+      toast.error("Invalid credentials.");
     } finally {
       setLoading(false);
     }
@@ -43,8 +47,10 @@ const Login = () => {
       }
       await googleAuth(credentialResponse.credential);
       const res = await getMe();
-      setUser(res.data.user);
-      navigate("/");
+      toast.success("Successfully logged in!");
+      setTimeout(() => {
+        setUser(res.data.user);
+      }, 1500);
     } catch (err) {
       console.error(err.response?.data);
       alert(err.response?.data?.message || "Google login failed");

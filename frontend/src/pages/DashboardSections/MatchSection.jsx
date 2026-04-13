@@ -29,6 +29,14 @@ const MatchSection = () => {
     fetchMatches();
   }, []);
 
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center min-h-[60vh] w-full">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-orange-500"></div>
+      </div>
+    );
+  }
+
   return (
     <div className="w-full max-w-300 mx-auto px-4 py-12">
       <h2 className="text-3xl font-bold text-center mb-8 text-white">
@@ -36,9 +44,7 @@ const MatchSection = () => {
       </h2>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-        {loading ? (
-          <p className="text-white col-span-full text-center">Loading...</p>
-        ) : matches.length === 0 ? (
+        {matches.length === 0 ? (
           <p className="text-neutral-400 col-span-full text-center">
             No recent matches found
           </p>

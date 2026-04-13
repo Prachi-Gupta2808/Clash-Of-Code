@@ -36,7 +36,6 @@ const panelsData = [
   },
 ];
 
-// Theme picker panel (same as ExpandingPanelsHover)
 function Panel({ panel, isActive, onHover, onClick }) {
   return (
     <motion.div
@@ -72,12 +71,10 @@ function Panel({ panel, isActive, onHover, onClick }) {
   );
 }
 
-// Modal shown when "Challenge Now" is clicked
 function ThemePickerModal({ friend, onClose, onThemeSelect }) {
   const [activeId, setActiveId] = useState(1);
 
   return (
-    // backdrop
     <div
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm"
       onClick={onClose}
@@ -86,7 +83,6 @@ function ThemePickerModal({ friend, onClose, onThemeSelect }) {
         className="relative flex flex-col gap-5 p-7 rounded-3xl bg-[#0f0f0f] border border-white/10 w-[88vw] max-w-4xl"
         onClick={(e) => e.stopPropagation()}
       >
-        {/* Header */}
         <div className="text-center">
           <h2 className="text-2xl font-bold text-white">
             Challenge{" "}
@@ -97,7 +93,6 @@ function ThemePickerModal({ friend, onClose, onThemeSelect }) {
           </p>
         </div>
 
-        {/* Panels */}
         <div className="flex h-[50vh] w-full gap-4">
           {panelsData.map((panel) => (
             <Panel
@@ -110,7 +105,6 @@ function ThemePickerModal({ friend, onClose, onThemeSelect }) {
           ))}
         </div>
 
-        {/* Close button */}
         <button
           onClick={onClose}
           className="absolute top-4 right-4 text-neutral-400 hover:text-white transition-colors"
@@ -128,9 +122,9 @@ const FriendsSection = () => {
   const [searchResults, setSearchResults] = useState([]);
   const [pendingSent, setPendingSent] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [challengingFriend, setChallengingFriend] = useState(null); // friend object or null
+  const [isInitialLoading, setIsInitialLoading] = useState(true);
+  const [challengingFriend, setChallengingFriend] = useState(null);
 
-  // Fetch friends
   useEffect(() => {
     const fetchFriends = async () => {
       try {
@@ -138,12 +132,13 @@ const FriendsSection = () => {
         setFriends(res.data);
       } catch (err) {
         console.error("Error fetching friends:", err);
+      } finally {
+        setIsInitialLoading(false);
       }
     };
     fetchFriends();
   }, []);
 
-  // Search users
   useEffect(() => {
     if (!search.trim()) {
       setSearchResults([]);
@@ -186,11 +181,9 @@ const FriendsSection = () => {
     }
   };
 
-  // Called when user picks a theme from the modal
   const handleThemeSelect = (theme) => {
     if (!challengingFriend) return;
 
-    // make sure socket is connected
     socket.connect();
 
     socket.emit("CHALLENGE_REQUEST", {
@@ -198,7 +191,7 @@ const FriendsSection = () => {
       theme,
     });
 
-    setChallengingFriend(null); // close modal
+    setChallengingFriend(null);
   };
 
   const displayList = search.trim()
@@ -208,9 +201,16 @@ const FriendsSection = () => {
       )
     : friends;
 
+  if (isInitialLoading) {
+    return (
+      <div className="flex justify-center items-center min-h-[60vh] w-full">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-orange-500"></div>
+      </div>
+    );
+  }
+
   return (
     <>
-      {/* Theme Picker Modal */}
       <AnimatePresence>
         {challengingFriend && (
           <ThemePickerModal
@@ -222,7 +222,6 @@ const FriendsSection = () => {
       </AnimatePresence>
 
       <div className="w-full max-w-300 mx-auto px-4 py-12 flex flex-col items-center gap-6">
-        {/* Search Bar */}
         <div className="w-full max-w-xl flex flex-col items-center">
           <div className="relative w-full">
             <input
@@ -244,7 +243,6 @@ const FriendsSection = () => {
           </p>
         </div>
 
-        {/* Cards */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 w-full">
           {loading ? (
             <p className="text-white text-center col-span-full">Loading...</p>
@@ -299,7 +297,7 @@ const FriendsSection = () => {
                         <CardItem
                           translateZ={20}
                           as="button"
-                          onClick={() => setChallengingFriend(user)} // 👈 open modal
+                          onClick={() => setChallengingFriend(user)}
                           className="bg-(--c4) text-white px-4 py-2 rounded-xl"
                         >
                           Challenge Now

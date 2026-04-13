@@ -158,6 +158,7 @@ const ProfileSection = ({ user }) => {
   const [username, setUsername] = useState("@" + (user?.username || "username"));
   const [inputDisabled, setInputDisabled] = useState(true);
   const [isSavingUser, setIsSavingUser] = useState(false);
+  const [isLoadingData, setIsLoadingData] = useState(true);
   
   const fileInputRef = useRef(null);
   const usernameInputRef = useRef(null);
@@ -172,13 +173,14 @@ const ProfileSection = ({ user }) => {
       try {
         const response = await getDashboardData();
         setRatingDeltas(response.data.ratingDeltas);
-        setStartingRating(response.data.startingRating) ;
-        setUserRating(response.data.rating) ;
-        setUserSubmissionCount(response.data.userSubmissionCount) ;
-        setHeatmapData(response.data.heatmapData) ;
-
+        setStartingRating(response.data.startingRating);
+        setUserRating(response.data.rating);
+        setUserSubmissionCount(response.data.userSubmissionCount);
+        setHeatmapData(response.data.heatmapData);
       } catch (error) {
         console.error(error);
+      } finally {
+        setIsLoadingData(false);
       }
     };
     fetchDeltas();
@@ -249,7 +251,7 @@ const ProfileSection = ({ user }) => {
         delta: delta,
       };
     });
-  }, [ratingDeltas]);
+  }, [ratingDeltas, startingRating]);
 
   const CustomGraphTooltip = ({ active, payload }) => {
     if (active && payload && payload.length) {
@@ -270,6 +272,14 @@ const ProfileSection = ({ user }) => {
     }
     return null;
   };
+
+  if (isLoadingData) {
+    return (
+      <div className="flex justify-center items-center min-h-[60vh] w-full">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-orange-500"></div>
+      </div>
+    );
+  }
 
   return (
     <>
@@ -359,7 +369,7 @@ const ProfileSection = ({ user }) => {
                 </div>
                 <div className="text-center">
                   <span className="block font-bold text-lg text-white">{userSubmissionCount}</span>
-                  <span className="text-gray-500">Solved</span>
+                  <span className="text-gray-500">Duels Played</span>
                 </div>
                 <div className="text-center">
                   <span className="block font-bold text-lg text-white">Top 5%</span>

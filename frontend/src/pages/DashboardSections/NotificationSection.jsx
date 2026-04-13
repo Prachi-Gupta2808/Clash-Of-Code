@@ -13,11 +13,10 @@ import { useEffect, useState } from "react";
 
 const NotificationSection = () => {
   const [requests, setRequests] = useState([]);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchRequests = async () => {
-      setLoading(true);
       try {
         const [incomingRes, pendingRes] = await Promise.all([
           getIncomingFriendRequests(),
@@ -69,12 +68,18 @@ const NotificationSection = () => {
     }
   };
 
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center min-h-[60vh] w-full">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-orange-500"></div>
+      </div>
+    );
+  }
+
   return (
     <div className="w-full max-w-300 mx-auto px-4 py-12">
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-        {loading ? (
-          <p className="text-white col-span-full text-center">Loading...</p>
-        ) : requests.length === 0 ? (
+        {requests.length === 0 ? (
           <p className="text-neutral-400 col-span-full text-center">
             No friend requests
           </p>
