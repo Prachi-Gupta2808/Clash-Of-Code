@@ -1,7 +1,7 @@
 import axios from "axios";
 
 const API = axios.create({
-  baseURL: "http://localhost:5000/api",
+  baseURL: import.meta.env.VITE_API_URL,
   withCredentials: true,
 });
 
@@ -64,4 +64,5 @@ export const getRecentMatches = () => API.get("/match/recent");
 
 export const getDashboardData = () => API.get("/dashboard/get-data");
 
-export const getMatchDuration = (matchId) => API.get(`/match/get-duration/${matchId}`);
+export const getMatchDuration = (matchId) =>
+  API.get(`/match/get-duration/${matchId}`);
