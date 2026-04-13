@@ -314,19 +314,45 @@ exports.getDashboardData = async (req, res) => {
   try {
     const ratingDeltas = [0];
     const startingRating = 800;
-    const userRating = await User.findById(req.user._id).select("rating");
-    const userSubmissionsCount = await Submission.find({ user: req.user._id }).countDocuments();
+
+    const userRatingDoc = await User.findById(req.user._id).select("rating");
+    const userSubmissionCount = await Submission.find({ user: req.user._id }).countDocuments();
     const heatmapData = await getHeatmapData(req.user._id);
 
-    // filling the ratingDeltas array
-    const userMatches = await Match.find({ $or: [{ player1: req.user._id }, { player2: req.user._id }] }).populate("questions").sort({ createdAt: -1 });
-    userMatches.forEach((match) => {
-      ratingDeltas.push((match?.ratingChange?.p1?.id?.toString() === req.user._id.toString()) ? Math.floor(match.ratingChange.p1.delta) : Math.floor(match.ratingChange.p2.delta));
-    })
+    // helper to format to 2 decimal places
+    const format2 = (num) => Number(num.toFixed(2));
 
-    res.status(200).json({ ratingDeltas: ratingDeltas, rating: userRating.rating , startingRating: startingRating , userSubmissionCount : userSubmissionsCount , heatmapData : heatmapData }) ;
+    // get all matches of user
+    const userMatches = await Match.find({
+      $or: [{ player1: req.user._id }, { player2: req.user._id }]
+    })
+      .populate("questions")
+      .sort({ createdAt: -1 });
+
+    // fill rating deltas
+    userMatches.forEach((match) => {
+      const isP1 = match?.ratingChange?.p1?.id?.toString() === req.user._id.toString();
+
+      const delta = isP1
+        ? match?.ratingChange?.p1?.delta
+        : match?.ratingChange?.p2?.delta;
+
+      // fallback safety (in case undefined)
+      if (delta !== undefined && delta !== null) {
+        ratingDeltas.push(format2(delta));
+      }
+    });
+
+    res.status(200).json({
+      ratingDeltas,
+      rating: format2(userRatingDoc.rating),
+      startingRating,
+      userSubmissionCount,
+      heatmapData
+    });
+
   } catch (error) {
     console.log("Error in getting dashboard data: ", error.message);
     res.status(500).json({ message: "Internal Server Error" });
   }
-}
+};

@@ -149,3 +149,24 @@ exports.getRecentMatches = async (req, res) => {
     return res.status(500).json({ error: err.message });
   }
 };
+
+exports.getMatchDuration = async (req, res) => {
+  try {
+    const match = await Match.findOne({ matchId: req.params.matchId }) ;
+    if (!match) {
+      return res.status(404).send({
+        msg: "Match Not Found",
+      });
+    }
+
+    const data = {
+      startTime: match.startTime,
+      endTime: match.endTime
+    }
+    
+    return res.status(200).send(data);
+  } catch(err) {
+    console.error("Error in getMatchDuration", err.message);
+    res.status(500).json({ error: err.message });
+  }
+}

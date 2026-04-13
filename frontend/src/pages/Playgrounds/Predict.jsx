@@ -208,7 +208,7 @@ const Predict = () => {
 
   if (waiting) {
     return (
-      <AfterMatch />
+      <AfterMatch matchId={matchId} />
     );
   }
 

@@ -241,7 +241,7 @@ const ProfileSection = ({ user }) => {
   const ratingData = useMemo(() => {
     let currentRating = startingRating;
     return ratingDeltas.map((delta, index) => {
-      currentRating += delta;
+      currentRating += Math.floor(delta);
       return {
         matchIndex: index,
         matchLabel: index === 0 ? "Start" : `Contest ${index}`,

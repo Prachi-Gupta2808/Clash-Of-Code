@@ -49,7 +49,7 @@ function App() {
           <Route path="/play" element={<ThemeSelect />} />
           <Route path="/lobby/:mode" element={<Lobby />} />
           <Route path="/match/:theme/:matchId" element={<Playground />} />
-          <Route path="/post-match" element={<AfterMatch />} />
+          <Route path="/post-match/:matchId" element={<AfterMatch />} />
           <Route path="/analytics/:matchId" element={<Analytics />} />
         </Route>
       </Routes>

@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { gsap } from 'gsap';
 import { useAuth } from '@/auth/AuthContext';
+import { getMatchDuration } from '@/api/auth';
 
 const slides = [
   {
@@ -23,30 +24,67 @@ const slides = [
   }
 ];
 
-const AfterMatch = () => {
+const AfterMatch = ({ matchId }) => {
   const [index, setIndex] = useState(0);
-  const [timeLeft, setTimeLeft] = useState(145);
+  const [timeLeft, setTimeLeft] = useState(null);
+  const [matchStatus, setMatchStatus] = useState("SYNCING MATCH DATA...");
+  
   const contentRef = useRef(null);
   const imgRef = useRef(null);
   const leftBtnRef = useRef(null);
   const rightBtnRef = useRef(null);
   const { user, loading } = useAuth();
 
-  // 1. Match Timer Logic (Fake)
   useEffect(() => {
-    const timer = setInterval(() => {
-      setTimeLeft((prev) => (prev > 0 ? prev - 1 : 0));
-    }, 1000);
-    return () => clearInterval(timer);
+    let timerInterval;
+
+    const syncTimer = async () => {
+      try {
+        let data = await getMatchDuration(matchId);
+        data = data.data ;
+        const bufferSeconds = 3; 
+        const targetEndTime = new Date(data.endTime).getTime() + (bufferSeconds * 1000);
+
+        const tick = () => {
+          const now = Date.now();
+          const diffInSeconds = Math.floor((targetEndTime - now) / 1000);
+
+          if (data.opponentFinished) {
+            setTimeLeft(0);
+            setMatchStatus("OPPONENT FINISHED. REDIRECTING...");
+            clearInterval(timerInterval);
+            // Handle redirect to results page here
+          } else if (diffInSeconds <= 0) {
+            setTimeLeft(0);
+            setMatchStatus("TIME UP. PROCESSING RESULTS...");
+            clearInterval(timerInterval);
+            // Handle time-up logic here
+          } else {
+            setTimeLeft(diffInSeconds);
+            setMatchStatus("YOUR OPPONENT IS STILL CODING...");
+          }
+        };
+
+        tick(); 
+        timerInterval = setInterval(tick, 1000);
+      } catch (error) {
+        console.error("Failed to sync match timer", error);
+        setMatchStatus("CONNECTION LOST. RECONNECTING...");
+      }
+    };
+
+    syncTimer();
+
+    return () => clearInterval(timerInterval);
   }, []);
 
   const formatTime = (seconds) => {
+    if (seconds === null) return "--:--";
     const mins = Math.floor(seconds / 60);
     const secs = seconds % 60;
     return `${mins}:${secs < 10 ? '0' : ''}${secs}`;
   };
 
-  // 2. Click/Key Animation Logic
   const animateButton = (ref) => {
     gsap.fromTo(ref.current, 
       { scale: 0.9, backgroundColor: "rgba(var(--c4-rgb), 0.2)" }, 
@@ -94,11 +132,11 @@ const AfterMatch = () => {
         
         <div className="flex justify-between items-end pb-4 border-b border-white/5">
           <div className="space-y-1">
-            <h2 className="text-(--c4) text-xs font-bold tracking-[0.6em] drop-shadow-[0_0_8px_var(--c4)] uppercase">Waiting_Room</h2>
+            <h2 className="text-(--c4) text-xs font-bold tracking-[0.6em] drop-shadow-[0_0_8px_var(--c4)] uppercase">Awaiting_Opponent</h2>
             <div className="flex items-center gap-2">
               <div className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse" />
               <p className="text-white/40 text-[10px] tracking-widest uppercase">
-                Match Running: <span className="text-white font-bold">{formatTime(timeLeft)} Left</span>
+                Time Remaining: <span className="text-white font-bold">{formatTime(timeLeft)}</span>
               </p>
             </div>
           </div>
@@ -118,7 +156,9 @@ const AfterMatch = () => {
           
           <div className="absolute top-8 left-12 flex flex-col gap-1">
             <span className="text-[10px] text-white/20 tracking-[0.3em] uppercase">Status</span>
-            <p className="text-white/60 text-xs tracking-tighter italic">PLEASE WAIT WHILE THE MATCH IS RUNNING...</p>
+            <p className={`text-xs tracking-tighter italic ${timeLeft === 0 ? 'text-(--c4) font-bold' : 'text-white/60'}`}>
+              {matchStatus}
+            </p>
           </div>
 
           <div ref={contentRef} className="absolute inset-0 flex flex-col justify-end p-12 pointer-events-none">
@@ -149,7 +189,7 @@ const AfterMatch = () => {
             <button 
               ref={leftBtnRef}
               onClick={() => moveSlide('prev')}
-              className="w-24 h-14 rounded-xl border border-white/10 bg-white/2 flex items-center justify-center text-xl hover:border-(--c4)/50 hover:bg-(--c4)/5 transition-all"
+              className="w-24 h-14 rounded-xl border border-white/10 bg-white/2 flex items-center justify-center text-xl hover:border-(--c4)/50 hover:bg-(--c4)/5 transition-all cursor-pointer"
             >
               <span className="group-hover:-translate-x-1 transition-transform">←</span>
             </button>
@@ -160,7 +200,7 @@ const AfterMatch = () => {
             <button 
               ref={rightBtnRef}
               onClick={() => moveSlide('next')}
-              className="w-24 h-14 rounded-xl border border-white/10 bg-white/2 flex items-center justify-center text-xl hover:border-(--c4)/50 hover:bg-(--c4)/5 transition-all"
+              className="w-24 h-14 rounded-xl border border-white/10 bg-white/2 flex items-center justify-center text-xl hover:border-(--c4)/50 hover:bg-(--c4)/5 transition-all cursor-pointer"
             >
               <span className="group-hover:translate-x-1 transition-transform">→</span>
             </button>

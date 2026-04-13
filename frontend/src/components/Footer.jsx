@@ -6,7 +6,7 @@ import GsapMarquee from "../components/GsapMarquee" ;
 
 const Footer = () => {
   return (
-    <div className="">
+    <div className="mt-20 md:mt-0">
       <GsapMarquee></GsapMarquee>
       <footer className="w-full bg-[#F2613F] text-black py-12 px-8 md:px-24">
         {/* Top Section: Main Content */}

@@ -63,3 +63,5 @@ export const submitMcq = (data) => API.post("/submit/mcq", data);
 export const getRecentMatches = () => API.get("/match/recent");
 
 export const getDashboardData = () => API.get("/dashboard/get-data");
+
+export const getMatchDuration = (matchId) => API.get(`/match/get-duration/${matchId}`);
