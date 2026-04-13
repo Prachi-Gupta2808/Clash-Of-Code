@@ -327,7 +327,7 @@ exports.getDashboardData = async (req, res) => {
       $or: [{ player1: req.user._id }, { player2: req.user._id }]
     })
       .populate("questions")
-      .sort({ createdAt: -1 });
+      .sort({ createdAt: 1 });
 
     // fill rating deltas
     userMatches.forEach((match) => {
