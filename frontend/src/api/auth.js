@@ -6,7 +6,7 @@ const API = axios.create({
 });
 
 export const signup = (data) => API.post("/auth/signup", data);
-export const login = (data) => API.post("/auth/login", data);
+export const login = (data) => API.post("/api/auth/login", data);
 export const googleAuth = (credential) =>
   API.post("/auth/google", { token: credential });
 export const getMe = () => API.get("/auth/me");
