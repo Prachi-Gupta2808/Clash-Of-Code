@@ -25,24 +25,17 @@ const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
-
-const allowedOrigins = [
-  "http://localhost:5173",
-  "https://clash-of-code-ten.vercel.app",
-];
-
 app.use(
   cors({
-    origin: function (origin, callback) {
-      if (!origin || allowedOrigins.includes(origin)) {
-        callback(null, true);
-      } else {
-        callback(new Error("Not allowed by CORS"));
-      }
-    },
+    origin: ["http://localhost:5173", "https://clash-of-code-ten.vercel.app"],
     credentials: true,
   })
 );
+
+app.use((req, res, next) => {
+  res.setHeader("Cross-Origin-Opener-Policy", "same-origin-allow-popups");
+  next();
+});
 app.use("/api/auth", authRoutes);
 app.post("/api/upload/avatar", protect, uploadAvatar);
 app.post("/api/upload/question", protect, addQuestion);

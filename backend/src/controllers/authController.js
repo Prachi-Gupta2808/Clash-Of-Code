@@ -19,8 +19,9 @@ const createToken = (userId, isAdmin) => {
 const setTokenCookie = (res, token) => {
   res.cookie("token", token, {
     httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
-    sameSite: process.env.NODE_ENV === "production" ? "None" : "Lax",
+    secure: true,
+    sameSite: "None",
+    path: "/",
     maxAge: 7 * 24 * 60 * 60 * 1000,
   });
 };
@@ -107,7 +108,7 @@ exports.googleAuth = async (req, res) => {
     const { email, name, sub: googleId } = payload;
 
     let user = await User.findOne({ email });
-    const extractUserName = email.split("@").at(0) ;
+    const extractUserName = email.split("@").at(0);
 
     if (!user) {
       user = await User.create({
