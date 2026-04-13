@@ -201,7 +201,7 @@ const Mcq = () => {
   }
 
   if (waiting) {
-    return <AfterMatch />;
+    return <AfterMatch matchId={matchId} />;
   }
 
   return (

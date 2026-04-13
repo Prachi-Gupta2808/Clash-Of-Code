@@ -92,9 +92,13 @@ const Contest = () => {
 
       if (remaining <= 0) {
         clearInterval(interval);
-        
+
         // Grab values directly from the ref
-        const { language: currentLang, code: currentCode, question: currentQuestion } = latestEditorState.current;
+        const {
+          language: currentLang,
+          code: currentCode,
+          question: currentQuestion,
+        } = latestEditorState.current;
         handleTimeoutSubmit(currentLang, currentCode, currentQuestion);
       } else {
         setTimeLeft(remaining);
@@ -128,16 +132,20 @@ const Contest = () => {
   }, [user, loading, matchId]);
 
   // Modified to accept current values as parameters and send submissionTimes array
-  const handleTimeoutSubmit = async (currentLang, currentCode, currentQuestion) => {
+  const handleTimeoutSubmit = async (
+    currentLang,
+    currentCode,
+    currentQuestion,
+  ) => {
     if (isCompiling || waiting) return;
     setIsCompiling(true);
     try {
-      await submitCode({ 
-        language: currentLang, 
-        code: currentCode, 
-        questionId: currentQuestion?._id, 
+      await submitCode({
+        language: currentLang,
+        code: currentCode,
+        questionId: currentQuestion?._id,
         matchId,
-        submissionTimes: [new Date().toISOString()] // Corrected to array
+        submissionTimes: [new Date().toISOString()], // Corrected to array
       });
       setWaiting(true);
     } catch (err) {
@@ -157,7 +165,7 @@ const Contest = () => {
         code,
         questionId: question?._id,
         matchId,
-        submissionTimes: [new Date().toISOString()] // Corrected to array
+        submissionTimes: [new Date().toISOString()], // Corrected to array
       });
       const resp = response.data;
 
@@ -219,7 +227,7 @@ const Contest = () => {
   }
 
   if (waiting) {
-    return <AfterMatch />;
+    return <AfterMatch matchId={matchId} />;
   }
 
   return (
