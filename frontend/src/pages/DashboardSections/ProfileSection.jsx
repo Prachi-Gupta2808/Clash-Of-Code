@@ -243,7 +243,7 @@ const ProfileSection = ({ user }) => {
   const ratingData = useMemo(() => {
     let currentRating = startingRating;
     return ratingDeltas.map((delta, index) => {
-      currentRating += Math.floor(delta);
+      currentRating += delta; 
       return {
         matchIndex: index,
         matchLabel: index === 0 ? "Start" : `Contest ${index}`,
@@ -260,11 +260,11 @@ const ProfileSection = ({ user }) => {
         <div className="bg-gray-900 border border-gray-700 p-3 rounded-lg shadow-xl">
           <p className="text-gray-400 text-xs mb-1">{data.matchLabel}</p>
           <p className="text-white font-bold text-base">
-            Rating: <span className="text-(--c4)">{data.rating}</span>
+            Rating: <span className="text-(--c4)">{Number(data.rating).toFixed(2)}</span>
           </p>
           {data.matchIndex !== 0 && (
             <p className={`text-xs font-semibold mt-1 ${data.delta >= 0 ? "text-green-500" : "text-red-500"}`}>
-              Change: {data.delta > 0 ? "+" : ""}{data.delta}
+              Change: {data.delta > 0 ? "+" : ""}{Number(data.delta).toFixed(2)}
             </p>
           )}
         </div>
@@ -363,7 +363,7 @@ const ProfileSection = ({ user }) => {
               <div className="flex justify-between w-full px-4 text-sm">
                 <div className="text-center">
                   <span className="block font-bold text-lg text-white">
-                    {userRating}
+                    {Number(userRating).toFixed(2)}
                   </span>
                   <span className="text-gray-500">Rating</span>
                 </div>
