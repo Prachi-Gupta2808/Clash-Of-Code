@@ -28,7 +28,7 @@ const Mcq = () => {
     if (!user || !matchId) return;
 
     if (!socket.current) {
-      socket.current = io("http://localhost:5000", {
+      socket.current = io(import.meta.env.VITE_API_URL, {
         transports: ["polling", "websocket"],
         withCredentials: true,
       });
