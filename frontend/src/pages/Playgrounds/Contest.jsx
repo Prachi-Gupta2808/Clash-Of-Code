@@ -1,5 +1,6 @@
 import { getInformation, submitCode } from "@/api/auth";
 import { useAuth } from "@/auth/AuthContext";
+import { socket } from "@/components/socket/socket";
 import Editor from "@monaco-editor/react";
 import {
   AlertCircle,
@@ -16,7 +17,6 @@ import {
 } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { io } from "socket.io-client";
 import AfterMatch from "../AfterMatch";
 
 const statusColors = {
@@ -31,7 +31,6 @@ const Contest = () => {
   const { user, loading } = useAuth();
   const { matchId } = useParams();
   const navigate = useNavigate();
-  const socket = useRef(null);
 
   const [question, setQuestion] = useState(null);
   const [language, setLanguage] = useState("cpp");
@@ -46,7 +45,6 @@ const Contest = () => {
   const [timeLeft, setTimeLeft] = useState(0);
   const [matchResult, setMatchResult] = useState(null);
 
-  // Reference to hold the latest state for the timer without causing re-renders
   const latestEditorState = useRef({ code, language, question });
 
   useEffect(() => {
@@ -56,31 +54,24 @@ const Contest = () => {
   useEffect(() => {
     if (!user || !matchId) return;
 
-    if (!socket.current) {
-      socket.current = io(import.meta.env.VITE_API_URL, {
-        transports: ["polling", "websocket"],
-        withCredentials: true,
-      });
-    }
+    socket.emit("JOIN_ROOM", matchId);
 
-    socket.current.emit("JOIN_ROOM", matchId);
-
-    socket.current.on("MATCH_RESULT", (data) => {
+    socket.on("MATCH_RESULT", (data) => {
       const myResult = data.scores?.find((s) => s.userId === user._id);
       setMatchResult(myResult || data);
       setIsSubmitted(true);
       setWaiting(false);
     });
 
-    socket.current.on("WINNER", (data) => {
+    socket.on("WINNER", (data) => {
       setMatchResult(data);
       setIsSubmitted(true);
       setWaiting(false);
     });
 
     return () => {
-      socket.current?.disconnect();
-      socket.current = null;
+      socket.off("MATCH_RESULT");
+      socket.off("WINNER");
     };
   }, [user, matchId]);
 
@@ -92,8 +83,6 @@ const Contest = () => {
 
       if (remaining <= 0) {
         clearInterval(interval);
-
-        // Grab values directly from the ref
         const {
           language: currentLang,
           code: currentCode,
@@ -105,7 +94,6 @@ const Contest = () => {
       }
     }, 1000);
 
-    // Removed editor states from the dependency array so timer is uninterrupted
     return () => clearInterval(interval);
   }, [endTime]);
 
@@ -131,11 +119,10 @@ const Contest = () => {
     fetchQuestions();
   }, [user, loading, matchId]);
 
-  // Modified to accept current values as parameters and send submissionTimes array
   const handleTimeoutSubmit = async (
     currentLang,
     currentCode,
-    currentQuestion,
+    currentQuestion
   ) => {
     if (isCompiling || waiting) return;
     setIsCompiling(true);
@@ -145,7 +132,7 @@ const Contest = () => {
         code: currentCode,
         questionId: currentQuestion?._id,
         matchId,
-        submissionTimes: [new Date().toISOString()], // Corrected to array
+        submissionTimes: [new Date().toISOString()],
       });
       setWaiting(true);
     } catch (err) {
@@ -165,7 +152,7 @@ const Contest = () => {
         code,
         questionId: question?._id,
         matchId,
-        submissionTimes: [new Date().toISOString()], // Corrected to array
+        submissionTimes: [new Date().toISOString()],
       });
       const resp = response.data;
 
@@ -197,7 +184,6 @@ const Contest = () => {
       <div className="flex w-full h-screen bg-[#0f0f0f] text-gray-300 font-sans items-center justify-center">
         <div className="bg-[#18181b] p-12 rounded-2xl border border-[#27272a] text-center max-w-lg w-full shadow-2xl relative overflow-hidden">
           <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-20 bg-(--c4) blur-[100px] opacity-20 pointer-events-none"></div>
-
           <Trophy className="w-20 h-20 text-yellow-500 mx-auto mb-6 drop-shadow-lg" />
           <h1 className="text-4xl font-bold text-white mb-2">
             Match Completed
@@ -205,7 +191,6 @@ const Contest = () => {
           <p className="text-gray-400 mb-8 text-lg">
             The coding contest has ended.
           </p>
-
           <div className="bg-[#0f0f0f] rounded-xl p-6 mb-8 border border-[#27272a]">
             <p className="text-sm text-gray-500 uppercase tracking-widest font-semibold mb-2">
               Result
@@ -214,7 +199,6 @@ const Contest = () => {
               {matchResult?.msg || matchResult?.verdict || "Completed"}
             </div>
           </div>
-
           <button
             onClick={() => navigate(`/analytics/${matchId}`)}
             className="w-full py-4 bg-[#27272a] hover:bg-[#3f3f46] text-white rounded-xl font-bold text-lg transition-all flex items-center justify-center gap-2 cursor-pointer"
@@ -271,23 +255,19 @@ const Contest = () => {
               <h1 className="text-2xl font-bold text-white mb-4">
                 {question.title || `Problem ${matchId}`}
               </h1>
-
               <div className="flex flex-wrap items-center gap-3 mb-6">
                 <div className="flex items-center gap-1.5 px-2 py-1 rounded-md bg-[#27272a] text-xs text-gray-400 border border-[#3f3f46]">
                   <Clock className="w-3 h-3 text-blue-400" />
                   <span>{question.timeLimit || 1.0}s</span>
                 </div>
-
                 <div className="flex items-center gap-1.5 px-2 py-1 rounded-md bg-[#27272a] text-xs text-gray-400 border border-[#3f3f46]">
                   <Cpu className="w-3 h-3 text-purple-400" />
                   <span>{question.memoryLimit || 256}MB</span>
                 </div>
               </div>
-
               <div className="prose prose-invert prose-p:text-gray-300 prose-headings:text-white max-w-none leading-relaxed text-sm">
                 <p className="whitespace-pre-wrap">{question.statement}</p>
               </div>
-
               <div className="mt-8 space-y-6">
                 {question.inputFormat && (
                   <div>
@@ -299,7 +279,6 @@ const Contest = () => {
                     </p>
                   </div>
                 )}
-
                 {question.outputFormat && (
                   <div>
                     <h3 className="text-white font-semibold mb-2 flex items-center gap-2 text-sm">
@@ -310,7 +289,6 @@ const Contest = () => {
                     </p>
                   </div>
                 )}
-
                 {question.contraints && (
                   <div>
                     <h3 className="text-white font-semibold mb-2 flex items-center gap-2 text-sm">
@@ -322,13 +300,11 @@ const Contest = () => {
                     </div>
                   </div>
                 )}
-
                 {(question.preTest || question.preTestOutput) && (
                   <div className="mt-6">
                     <h3 className="text-white font-semibold mb-3 border-b border-[#27272a] pb-2 text-sm flex items-center gap-2">
                       <Hash className="w-3 h-3 text-blue-400" /> Sample Case
                     </h3>
-
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div>
                         <div className="text-xs text-gray-500 mb-1 uppercase font-semibold">
@@ -338,7 +314,6 @@ const Contest = () => {
                           {question.preTest || "N/A"}
                         </div>
                       </div>
-
                       <div>
                         <div className="text-xs text-gray-500 mb-1 uppercase font-semibold">
                           Output
@@ -378,18 +353,14 @@ const Contest = () => {
               </select>
             </div>
           </div>
-
           <button
             onClick={handleSubmit}
             disabled={isCompiling}
-            className={`
-              flex items-center gap-2 px-5 py-1.5 rounded-md text-sm font-semibold transition-all
-              ${
-                isCompiling
-                  ? "bg-gray-700 text-gray-400 cursor-not-allowed"
-                  : "bg-(--c4) hover:bg-(--c3) cursor-pointer text-white shadow-lg shadow-green-900/20 active:scale-95"
-              }
-            `}
+            className={`flex items-center gap-2 px-5 py-1.5 rounded-md text-sm font-semibold transition-all ${
+              isCompiling
+                ? "bg-gray-700 text-gray-400 cursor-not-allowed"
+                : "bg-(--c4) hover:bg-(--c3) cursor-pointer text-white shadow-lg shadow-green-900/20 active:scale-95"
+            }`}
           >
             {isCompiling ? (
               <>
@@ -397,7 +368,7 @@ const Contest = () => {
               </>
             ) : (
               <>
-                <Play className="w-3 h-3 fill-current" /> Submit{" "}
+                <Play className="w-3 h-3 fill-current" /> Submit
               </>
             )}
           </button>
@@ -429,7 +400,6 @@ const Contest = () => {
               <span>Submission Result</span>
             </div>
           </div>
-
           <div className="flex-1 p-4 font-mono text-sm overflow-auto custom-scrollbar">
             {output ? (
               <pre className={`${statusColors[output] || "text-gray-300"}`}>

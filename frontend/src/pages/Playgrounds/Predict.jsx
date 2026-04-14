@@ -1,8 +1,8 @@
 import { getInformation, submitOutput } from "@/api/auth";
 import { useAuth } from "@/auth/AuthContext";
+import { socket } from "@/components/socket/socket";
 import Editor from "@monaco-editor/react";
 import {
-  ArrowLeft,
   ArrowRight,
   CheckCircle2,
   Code2,
@@ -12,20 +12,17 @@ import {
   Terminal,
   Trophy,
 } from "lucide-react";
-import { useEffect, useState, useRef } from "react";
-import { useParams, useNavigate } from "react-router-dom";
-import { io } from "socket.io-client";
+import { useEffect, useState } from "react";
+import { useNavigate, useParams } from "react-router-dom";
 import AfterMatch from "../AfterMatch";
 
 const Predict = () => {
   const { user, loading } = useAuth();
   const { matchId } = useParams();
-  const socket = useRef(null);
   const navigate = useNavigate();
 
   const [questions, setQuestions] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
-
   const [currentIndex, setCurrentIndex] = useState(0);
   const [userAnswers, setUserAnswers] = useState({});
   const [answerTimestamps, setAnswerTimestamps] = useState({});
@@ -39,36 +36,25 @@ const Predict = () => {
   useEffect(() => {
     if (!user || !matchId) return;
 
-    if (!socket.current) {
-      socket.current = io(import.meta.env.VITE_API_URL, {
-        transports: ["polling", "websocket"],
-        withCredentials: true,
-      });
-    }
+    socket.emit("JOIN_ROOM", matchId);
 
-    socket.current.on("connect", () => {
-      console.log("Connected ✅");
-    });
-
-    socket.current.emit("JOIN_ROOM", matchId);
-
-    socket.current.on("MATCH_RESULT", (data) => {
-      const myScore = data.scores.find((s) => s.userId === user._id)?.score ?? 0;
-
+    socket.on("MATCH_RESULT", (data) => {
+      const myScore =
+        data.scores.find((s) => s.userId === user._id)?.score ?? 0;
       setFinalScore(myScore);
       setIsSubmitted(true);
       setWaiting(false);
     });
 
-    socket.current.on("USER_SUBMITTED", ({ userId }) => {
+    socket.on("USER_SUBMITTED", ({ userId }) => {
       if (userId !== user._id) {
         console.log("Opponent submitted");
       }
     });
 
     return () => {
-      socket.current?.disconnect();
-      socket.current = null;
+      socket.off("MATCH_RESULT");
+      socket.off("USER_SUBMITTED");
     };
   }, [user, matchId]);
 
@@ -77,7 +63,6 @@ const Predict = () => {
 
     const interval = setInterval(() => {
       const remaining = Math.floor((new Date(endTime) - Date.now()) / 1000);
-
       if (remaining <= 0) {
         clearInterval(interval);
         handleSubmitTest();
@@ -97,7 +82,6 @@ const Predict = () => {
         setIsLoading(true);
         const matchInfo = await getInformation(matchId);
         setEndTime(matchInfo.data.endTime);
-
         if (matchInfo && matchInfo.data.questions.length > 0) {
           setQuestions(matchInfo.data.questions);
         }
@@ -114,24 +98,11 @@ const Predict = () => {
   const currentQuestion = questions[currentIndex];
   const isLastQuestion = currentIndex === questions.length - 1;
 
-  const normalize = (str) => {
-    if (!str) return "";
-    return str.trim().replace(/\s+/g, " ");
-  };
-
   const handleInputChange = (e) => {
     const val = e.target.value;
     const timestamp = new Date().toISOString();
-
-    setUserAnswers((prev) => ({
-      ...prev,
-      [currentIndex]: val,
-    }));
-
-    setAnswerTimestamps((prev) => ({
-      ...prev,
-      [currentIndex]: timestamp,
-    }));
+    setUserAnswers((prev) => ({ ...prev, [currentIndex]: val }));
+    setAnswerTimestamps((prev) => ({ ...prev, [currentIndex]: timestamp }));
   };
 
   const handleNext = () => {
@@ -143,14 +114,12 @@ const Predict = () => {
     setSubmitting(true);
 
     const payload = questions.map((q, index) => userAnswers[index] || "");
-    const submissionTimes = questions.map((q, index) => answerTimestamps[index] || null);
+    const submissionTimes = questions.map(
+      (q, index) => answerTimestamps[index] || null
+    );
 
     try {
-      await submitOutput({
-        finalAnswers: payload,
-        submissionTimes,
-        matchId,
-      });
+      await submitOutput({ finalAnswers: payload, submissionTimes, matchId });
       setWaiting(true);
     } catch (err) {
       alert("Submission failed");
@@ -173,16 +142,13 @@ const Predict = () => {
       <div className="flex w-full h-screen bg-[#0f0f0f] text-gray-300 font-sans items-center justify-center">
         <div className="bg-[#18181b] p-12 rounded-2xl border border-[#27272a] text-center shadow-2xl max-w-lg w-full relative overflow-hidden">
           <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-20 bg-(--c4) blur-[100px] opacity-20 pointer-events-none"></div>
-
           <Trophy className="w-20 h-20 text-yellow-500 mx-auto mb-6 drop-shadow-lg" />
-
           <h1 className="text-4xl font-bold text-white mb-2 tracking-tight">
             Test Completed
           </h1>
           <p className="text-gray-400 mb-8 text-lg">
             You have successfully submitted your answers.
           </p>
-
           <div className="bg-[#0f0f0f] rounded-xl p-6 mb-8 border border-[#27272a]">
             <p className="text-sm text-gray-500 uppercase tracking-widest font-semibold mb-2">
               Final Score
@@ -194,7 +160,6 @@ const Predict = () => {
               </span>
             </div>
           </div>
-
           <button
             onClick={() => navigate(`/analytics/${matchId}`)}
             className="w-full py-4 bg-[#27272a] hover:bg-[#3f3f46] text-white rounded-xl font-bold text-lg transition-all flex items-center justify-center gap-2 cursor-pointer"
@@ -207,9 +172,7 @@ const Predict = () => {
   }
 
   if (waiting) {
-    return (
-      <AfterMatch matchId={matchId} />
-    );
+    return <AfterMatch matchId={matchId} />;
   }
 
   return (

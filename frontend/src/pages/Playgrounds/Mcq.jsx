@@ -1,16 +1,15 @@
 import { getInformation, submitMcq } from "@/api/auth";
 import { useAuth } from "@/auth/AuthContext";
+import { socket } from "@/components/socket/socket";
 import { Clock, HelpCircle, LayoutGrid, Loader2, Trophy } from "lucide-react";
-import { useEffect, useState, useRef } from "react";
-import { useParams, useNavigate } from "react-router-dom";
-import { io } from "socket.io-client";
+import { useEffect, useState } from "react";
+import { useNavigate, useParams } from "react-router-dom";
 import AfterMatch from "../AfterMatch";
 
 const Mcq = () => {
   const { user, loading } = useAuth();
   const { matchId } = useParams();
   const navigate = useNavigate();
-  const socket = useRef(null);
 
   const [questions, setQuestions] = useState([]);
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -27,20 +26,9 @@ const Mcq = () => {
   useEffect(() => {
     if (!user || !matchId) return;
 
-    if (!socket.current) {
-      socket.current = io(import.meta.env.VITE_API_URL, {
-        transports: ["polling", "websocket"],
-        withCredentials: true,
-      });
-    }
+    socket.emit("JOIN_ROOM", matchId);
 
-    socket.current.on("connect", () => {
-      console.log("Connected");
-    });
-
-    socket.current.emit("JOIN_ROOM", matchId);
-
-    socket.current.on("MATCH_RESULT", (data) => {
+    socket.on("MATCH_RESULT", (data) => {
       const myScore =
         data.scores.find((s) => s.userId === user._id)?.score ?? 0;
       setFinalScore(myScore);
@@ -48,15 +36,15 @@ const Mcq = () => {
       setWaiting(false);
     });
 
-    socket.current.on("USER_SUBMITTED", ({ userId }) => {
+    socket.on("USER_SUBMITTED", ({ userId }) => {
       if (userId !== user._id) {
         console.log("Opponent submitted");
       }
     });
 
     return () => {
-      socket.current?.disconnect();
-      socket.current = null;
+      socket.off("MATCH_RESULT");
+      socket.off("USER_SUBMITTED");
     };
   }, [user, matchId]);
 
@@ -104,24 +92,18 @@ const Mcq = () => {
 
   const handleSubmitTest = async (
     answers = userAnswers,
-    timestamps = answerTimestamps,
+    timestamps = answerTimestamps
   ) => {
     if (submitting) return;
-
     setSubmitting(true);
 
     const finalAnswers = questions.map((_, index) => answers[index] || "");
     const submissionTimes = questions.map(
-      (_, index) => timestamps[index] || null,
+      (_, index) => timestamps[index] || null
     );
 
     try {
-      await submitMcq({
-        finalAnswers,
-        submissionTimes,
-        matchId,
-      });
-
+      await submitMcq({ finalAnswers, submissionTimes, matchId });
       setWaiting(true);
     } catch (err) {
       console.error("Submission failed", err);
@@ -132,11 +114,7 @@ const Mcq = () => {
 
   const handleOptionSelect = (option) => {
     const timestamp = new Date().toISOString();
-    const updatedAnswers = {
-      ...userAnswers,
-      [currentIndex]: option,
-    };
-
+    const updatedAnswers = { ...userAnswers, [currentIndex]: option };
     const updatedTimestamps = {
       ...answerTimestamps,
       [currentIndex]: timestamp,
@@ -170,13 +148,11 @@ const Mcq = () => {
       <div className="flex w-full h-screen bg-[#0f0f0f] text-gray-300 font-sans items-center justify-center">
         <div className="bg-[#18181b] p-12 rounded-2xl border border-[#27272a] text-center max-w-lg w-full shadow-2xl relative overflow-hidden">
           <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-20 bg-(--c4) blur-[100px] opacity-20 pointer-events-none"></div>
-
           <Trophy className="w-20 h-20 text-yellow-500 mx-auto mb-6 drop-shadow-lg" />
           <h1 className="text-4xl font-bold text-white mb-2">Quiz Completed</h1>
           <p className="text-gray-400 mb-8 text-lg">
             Your answers have been recorded.
           </p>
-
           <div className="bg-[#0f0f0f] rounded-xl p-6 border border-[#27272a]">
             <p className="text-sm text-gray-500 uppercase tracking-widest font-semibold mb-2">
               Final Score
@@ -188,10 +164,9 @@ const Mcq = () => {
               </span>
             </div>
           </div>
-
           <button
             onClick={() => navigate(`/analytics/${matchId}`)}
-            className="w-full py-4 bg-[#27272a] hover:bg-[#3f3f46] text-white rounded-xl font-bold text-lg transition-all flex items-center justify-center gap-2 cursor-pointer"
+            className="w-full py-4 bg-[#27272a] hover:bg-[#3f3f46] text-white rounded-xl font-bold text-lg transition-all flex items-center justify-center gap-2 cursor-pointer mt-8"
           >
             Go to Analytics
           </button>
@@ -264,24 +239,18 @@ const Mcq = () => {
                     <button
                       key={idx}
                       onClick={() => handleOptionSelect(option)}
-                      className={`
-                        w-full text-left p-4 rounded-lg border transition-all duration-150 flex items-center gap-4 relative overflow-hidden group
-                        ${
-                          isSelected
-                            ? "bg-(--c4) border-(--c4) text-white"
-                            : "bg-[#0f0f0f] border-[#27272a] hover:bg-[#27272a] hover:border-gray-600 text-gray-300"
-                        }
-                      `}
+                      className={`w-full text-left p-4 rounded-lg border transition-all duration-150 flex items-center gap-4 relative overflow-hidden group ${
+                        isSelected
+                          ? "bg-(--c4) border-(--c4) text-white"
+                          : "bg-[#0f0f0f] border-[#27272a] hover:bg-[#27272a] hover:border-gray-600 text-gray-300"
+                      }`}
                     >
                       <div
-                        className={`
-                          w-6 h-6 rounded flex items-center justify-center text-xs font-bold border transition-colors
-                          ${
-                            isSelected
-                              ? "bg-white text-black border-white"
-                              : "bg-[#18181b] text-gray-500 border-[#3f3f46] group-hover:border-gray-500"
-                          }
-                        `}
+                        className={`w-6 h-6 rounded flex items-center justify-center text-xs font-bold border transition-colors ${
+                          isSelected
+                            ? "bg-white text-black border-white"
+                            : "bg-[#18181b] text-gray-500 border-[#3f3f46] group-hover:border-gray-500"
+                        }`}
                       >
                         {String.fromCharCode(65 + idx)}
                       </div>
@@ -328,20 +297,16 @@ const Mcq = () => {
             {questions.map((_, idx) => {
               const isCurrent = idx === currentIndex;
               const isAnswered = userAnswers[idx] !== undefined;
-
               return (
                 <div
                   key={idx}
-                  className={`
-                    aspect-square rounded-md flex items-center justify-center font-bold text-xs transition-all select-none cursor-default
-                    ${
-                      isCurrent
-                        ? "bg-orange-500 text-white ring-1 ring-[#0f0f0f] scale-110 z-10"
-                        : isAnswered
-                          ? "bg-green-600 text-white opacity-50"
-                          : "bg-[#18181b] border border-[#27272a] text-gray-600"
-                    }
-                  `}
+                  className={`aspect-square rounded-md flex items-center justify-center font-bold text-xs transition-all select-none cursor-default ${
+                    isCurrent
+                      ? "bg-orange-500 text-white ring-1 ring-[#0f0f0f] scale-110 z-10"
+                      : isAnswered
+                      ? "bg-green-600 text-white opacity-50"
+                      : "bg-[#18181b] border border-[#27272a] text-gray-600"
+                  }`}
                 >
                   {idx + 1}
                 </div>
