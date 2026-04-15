@@ -11,6 +11,7 @@ import {
   sendFriendRequest,
 } from "../../api/auth";
 import { socket } from "../../components/socket/socket";
+import peopleSearchSvg from "/people_search.svg";
 
 const panelsData = [
   {
@@ -75,11 +76,17 @@ function ThemePickerModal({ friend, onClose, onThemeSelect }) {
   const [activeId, setActiveId] = useState(1);
 
   return (
-    <div
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm"
       onClick={onClose}
     >
-      <div
+      <motion.div
+        initial={{ scale: 0.95, opacity: 0 }}
+        animate={{ scale: 1, opacity: 1 }}
+        exit={{ scale: 0.95, opacity: 0 }}
         className="relative flex flex-col gap-5 p-7 rounded-3xl bg-[#0f0f0f] border border-white/10 w-[88vw] max-w-4xl"
         onClick={(e) => e.stopPropagation()}
       >
@@ -111,8 +118,8 @@ function ThemePickerModal({ friend, onClose, onThemeSelect }) {
         >
           <X size={20} />
         </button>
-      </div>
-    </div>
+      </motion.div>
+    </motion.div>
   );
 }
 
@@ -239,7 +246,9 @@ const FriendsSection = () => {
           <p className="mt-4 text-xl text-neutral-400">
             {search.trim()
               ? "Search users to send requests"
-              : "Your friends, challenge them!"}
+              : friends.length > 0 
+                ? "Your friends, challenge them!" 
+                : "Search for users to add as friends!"}
           </p>
         </div>
 
@@ -247,11 +256,16 @@ const FriendsSection = () => {
           {loading ? (
             <p className="text-white text-center col-span-full">Loading...</p>
           ) : displayList.length === 0 ? (
-            search.trim() && (
-              <p className="text-white text-center col-span-full">
-                No users found.
+            <div className="col-span-full flex flex-col items-center justify-center min-h-[40vh] gap-4">
+              <img 
+                src={typeof peopleSearchSvg === 'string' ? peopleSearchSvg : peopleSearchSvg?.src} 
+                alt="No users" 
+                className="w-48 h-48 opacity-50" 
+              />
+              <p className="text-neutral-400 text-center">
+                {search.trim() ? "No users found" : "No friends yet. Search to add some!"}
               </p>
-            )
+            </div>
           ) : (
             displayList.map((user) => (
               <CardContainer
@@ -261,7 +275,7 @@ const FriendsSection = () => {
                 <CardBody className="bg-gray-50 relative group/card dark:bg-black dark:border-white/20 border-black/10 rounded-xl p-6 border w-full h-full">
                   <CardItem
                     translateZ={50}
-                    className="text-xl font-bold text-white"
+                    className="text-xl font-bold text-neutral-600 dark:text-white"
                   >
                     {user.username || "DefaultUser"}
                   </CardItem>
@@ -269,7 +283,7 @@ const FriendsSection = () => {
                   <CardItem
                     as="p"
                     translateZ={60}
-                    className="text-sm mt-2 text-white"
+                    className="text-sm mt-2 text-neutral-500 dark:text-neutral-300"
                   >
                     {user.fullName}
                   </CardItem>
@@ -288,7 +302,7 @@ const FriendsSection = () => {
                         translateZ={20}
                         as="button"
                         onClick={() => handleSendRequest(user._id)}
-                        className="bg-(--c4) text-white px-4 py-2 rounded-xl"
+                        className="bg-(--c4) hover:bg-(--c3) duration-300 text-white px-4 py-2 text-sm rounded-xl flex items-center justify-center shadow-[0_0_20px_rgba(242,97,63,0.6)]"
                       >
                         Send Friend Request
                       </CardItem>
@@ -298,7 +312,7 @@ const FriendsSection = () => {
                           translateZ={20}
                           as="button"
                           onClick={() => setChallengingFriend(user)}
-                          className="bg-(--c4) text-white px-4 py-2 rounded-xl"
+                          className="bg-(--c4) hover:bg-(--c3) duration-300 text-white px-4 py-2 text-sm rounded-xl flex items-center justify-center shadow-[0_0_20px_rgba(242,97,63,0.6)]"
                         >
                           Challenge Now
                         </CardItem>
@@ -306,9 +320,9 @@ const FriendsSection = () => {
                           translateZ={20}
                           as="button"
                           onClick={() => handleRemoveFriend(user._id)}
-                          className="bg-red-600 text-white px-4 py-2 rounded-xl"
+                          className="bg-red-600 hover:bg-red-700 duration-300 text-white px-4 py-2 text-sm rounded-xl flex items-center justify-center shadow-[0_0_20px_rgba(220,38,38,0.6)]"
                         >
-                          Remove Friend
+                          Remove
                         </CardItem>
                       </>
                     )}

@@ -1,6 +1,8 @@
 const User = require("../models/User.model");
 const Question = require("../models/Question.model");
 const Match = require("../models/Match.model");
+const Submission = require("../models/Submission.model");
+
 const {
   calculateTimeTaken,
   calculateAvgTime,
@@ -38,6 +40,14 @@ exports.getMatchAnalytics = async (req, res) => {
     const yourSub = match.submissions.find((s) => s.userId.equals(you._id));
     const oppSub = match.submissions.find((s) => s.userId.equals(opponent._id));
 
+    let yourCodeSubmission = "";
+    let opponentCodeSubmission = "";
+
+    if (match.theme === "contest") {
+      yourCodeSubmission = await Submission.findOne({ matchId: match.matchId, user: you._id, status: "AC" });
+      opponentCodeSubmission = await Submission.findOne({ matchId: match.matchId, user: opponent._id, status: "AC" });
+    }
+
     const chartData = [];
     const questionsBreakdown = [];
 
@@ -52,12 +62,8 @@ exports.getMatchAnalytics = async (req, res) => {
 
       // Map the answers
       const yourAnswer = yourSub ? yourSub.answers[index] : null;
-
-      // Updated to match your Question schema
       const actualAnswer = q.actualTestOutput;
 
-      // For MCQ and Predict, a direct string comparison works.
-      // trim whitespace if predicting output
       const isCorrect =
         yourAnswer && actualAnswer && yourAnswer.trim() === actualAnswer.trim();
 
@@ -67,9 +73,16 @@ exports.getMatchAnalytics = async (req, res) => {
         oppTime: oppTime,
       });
 
+      // Include ALL schema properties needed for UI rendering
       questionsBreakdown.push({
         id: q._id,
+        title: q.title,
         statement: q.statement,
+        inputFormat: q.inputFormat,
+        outputFormat: q.outputFormat,
+        constraints: q.constraints,
+        // Map preTest to a testCases array format for the frontend
+        testCases: q.preTest ? [{ input: q.preTest, output: q.preTestOutput }] : [],
         actualAnswer: actualAnswer,
         yourAnswer:
           yourAnswer ||
@@ -102,8 +115,11 @@ exports.getMatchAnalytics = async (req, res) => {
       },
       chartData,
       questionsBreakdown,
+      yourCodeSubmission,
+      opponentCodeSubmission,
     });
   } catch (err) {
+    console.log(err.message);
     res.status(500).json({ error: err.message });
   }
 };

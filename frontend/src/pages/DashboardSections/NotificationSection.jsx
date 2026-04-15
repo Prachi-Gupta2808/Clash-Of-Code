@@ -10,6 +10,7 @@ import {
 
 import { CardBody, CardContainer, CardItem } from "@/components/ui/3d-card";
 import { useEffect, useState } from "react";
+import peopleSearchSvg from "/people_search.svg";
 
 const NotificationSection = () => {
   const [requests, setRequests] = useState([]);
@@ -80,9 +81,12 @@ const NotificationSection = () => {
     <div className="w-full max-w-300 mx-auto px-4 py-12">
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         {requests.length === 0 ? (
-          <p className="text-neutral-400 col-span-full text-center">
-            No friend requests
-          </p>
+          <div className="col-span-full flex flex-col items-center justify-center min-h-[40vh] gap-4">
+            <img src={peopleSearchSvg} alt="No requests" className="w-100 h-100 opacity-50" />
+            <p className="text-neutral-400 text-center">
+              No friend requests
+            </p>
+          </div>
         ) : (
           requests.map((req) => (
             <CardContainer
