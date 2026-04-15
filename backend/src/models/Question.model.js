@@ -23,7 +23,7 @@ const questionSchema = new mongoose.Schema(
     outputFormat: {
       type: String,
     },
-    contraints: { 
+    constraints: { 
       type: String,
     },
     timeLimit: {

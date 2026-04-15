@@ -43,7 +43,7 @@ const Admin = () => {
     statement: "",
     inputFormat: "",
     outputFormat: "",
-    contraints: "",
+    constraints: "",
     options: "",
     preTest: "",
     preTestOutput: "",

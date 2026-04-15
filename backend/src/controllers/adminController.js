@@ -14,7 +14,7 @@ exports.addQuestion = async (req, res) => {
       statement,
       inputFormat,
       outputFormat,
-      contraints,
+      constraints,
       options,
       preTest,
       preTestOutput,
@@ -24,30 +24,39 @@ exports.addQuestion = async (req, res) => {
       memoryLimit,
     } = req.body;
 
-    // authorization Check
-    const admin = req.user.isAdmin;
-    if (!admin) {
-      return res.status(401).json({
-        message: "Unauthorized Access: Admin privileges required",
-      });
-    }
+    // if (!req.user?.isAdmin) {
+    //   return res.status(401).json({
+    //     message: "Unauthorized Access: Admin privileges required",
+    //   });
+    // }
 
-    // validation
-    if (!title || !rating || !statement || !actualTestOutput) {
+    // 🧠 Auto-fill missing fields
+    title = title || `Question ${rating}`;
+    tags = tags || [];
+    theme = theme || "general";
+    inputFormat = inputFormat || "";
+    outputFormat = outputFormat || "";
+    constraints = constraints || "";
+    options = options || [];
+    preTest = preTest || "";
+    preTestOutput = preTestOutput || "";
+    actualTest = actualTest || "";
+    timeLimit = timeLimit || 2.0;
+    memoryLimit = memoryLimit || 256;
+
+    if (!rating || !statement || !actualTestOutput) {
       return res.status(400).json({
-        message:
-          "Title, Rating, Statement, and Actual Test Output are required fields.",
+        message: "Rating, Statement, and Actual Output are required.",
       });
     }
-
-    // We normalize outputs to ensure consistent comparison later
-    // We generally do NOT normalize input code/statements too aggressively to preserve formatting
     const normalizedPreTestOutput = preTestOutput
       ? normalize(preTestOutput)
       : "";
+
     const normalizedActualTestOutput = normalize(actualTestOutput);
-    inputFormat = normalize(inputFormat) ;
-    outputFormat = normalize(outputFormat) ;
+
+    inputFormat = inputFormat ? normalize(inputFormat) : "";
+    outputFormat = outputFormat ? normalize(outputFormat) : "";
 
     const question = await Question.create({
       title,
@@ -57,7 +66,7 @@ exports.addQuestion = async (req, res) => {
       statement,
       inputFormat,
       outputFormat,
-      contraints,
+      constraints,
       options,
       timeLimit,
       memoryLimit,
@@ -68,12 +77,16 @@ exports.addQuestion = async (req, res) => {
     });
 
     res.status(201).json({
+      success: true,
       message: "Question added successfully",
       question,
     });
+
   } catch (error) {
     console.error("Add Question Error:", error);
+
     res.status(500).json({
+      success: false,
       message: "Failed to add question",
       error: error.message,
     });
