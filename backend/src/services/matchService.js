@@ -21,7 +21,7 @@ exports.createMatch = async (
   }
   const now = new Date();
 
-  const duration = mode === "mcq" ? 1 : mode === "predict" ? 2 : 3; // minutes
+  const duration = mode === "mcq" ? 10 : 15 ; // minutes
 
   const newMatch = await Match.create({
     player1: player1_ID,

@@ -9,14 +9,14 @@ const kValues = {
 } ;
 
 const multipliers = {
-    "win" : 2,
+    "win" : 1.5,
     "lose" : 0.5,
     "tie" : 1,
 } ;
 
 const matchScore = {
-    "lose": 0,
     "win": 1,
+    "lose": 0,
     "tie": 0.5,
 }
 

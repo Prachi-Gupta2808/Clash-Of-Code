@@ -1,6 +1,7 @@
 import { getInformation, submitMcq } from "@/api/auth";
 import { useAuth } from "@/auth/AuthContext";
 import { socket } from "@/components/socket/socket";
+import Editor from "@monaco-editor/react";
 import { Clock, HelpCircle, LayoutGrid, Loader2, Trophy } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
@@ -211,9 +212,27 @@ const Mcq = () => {
         <div className="flex-1 overflow-y-auto p-6 custom-scrollbar">
           <div className="max-w-3xl mx-auto">
             <div className="mb-6">
-              <h1 className="text-xl md:text-2xl font-bold text-white leading-relaxed mb-4">
-                {currentQuestion?.statement || "Loading..."}
-              </h1>
+              
+              {/* Monaco Editor Implementation */}
+              <div className="rounded-lg overflow-hidden border border-[#27272a] mb-4">
+                <Editor
+                  height="250px"
+                  theme="vs-dark"
+                  defaultLanguage={currentQuestion?.language || "markdown"}
+                  value={currentQuestion?.statement || "Loading..."}
+                  options={{
+                    readOnly: true,
+                    minimap: { enabled: false },
+                    wordWrap: "on",
+                    scrollBeyondLastLine: false,
+                    fontSize: 15,
+                    padding: { top: 16, bottom: 16 },
+                    lineNumbers: "off", // Set to "on" if you want line numbers for code
+                    contextmenu: false,
+                  }}
+                />
+              </div>
+
               {currentQuestion?.tags && (
                 <div className="flex gap-2">
                   {currentQuestion.tags.map((tag, i) => (
