@@ -1,16 +1,48 @@
 import { useAuth } from "@/auth/AuthContext";
-import ExpandingPanels from "@/components/ExpandingPanels";
 import Footer from "@/components/Footer";
-import TwoPhotos from "@/components/ProfileCards";
-import ScrollReview from "@/components/ScrollReview";
-import ScrollStatsSection from "@/components/ScrollStatsSection";
 import { socket } from "@/components/socket/socket";
 import { MaskContainer } from "@/components/ui/svg-mask-effect";
-import { useEffect, useRef, useState } from "react";
+import { lazy, Suspense, useEffect, useRef, useState } from "react";
 import { FaPlay } from "react-icons/fa6";
 import { useNavigate } from "react-router-dom";
 import { logout } from "../api/auth";
 import "./HomePage.css";
+
+// Lazy loaded components
+const ExpandingPanels = lazy(() => import("@/components/ExpandingPanels"));
+const TwoPhotos = lazy(() => import("@/components/ProfileCards"));
+const ScrollReview = lazy(() => import("@/components/ScrollReview"));
+const ScrollStatsSection = lazy(() =>
+  import("@/components/ScrollStatsSection")
+);
+
+const LazySection = ({ children, placeholderHeight = "300px" }) => {
+  const [isVisible, setIsVisible] = useState(false);
+  const ref = useRef(null);
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setIsVisible(true);
+          observer.disconnect();
+        }
+      },
+      { rootMargin: "300px" }
+    );
+    if (ref.current) observer.observe(ref.current);
+    return () => observer.disconnect();
+  }, []);
+
+  return (
+    <div
+      ref={ref}
+      style={{ minHeight: isVisible ? "auto" : placeholderHeight }}
+    >
+      {isVisible ? <Suspense fallback={null}>{children}</Suspense> : null}
+    </div>
+  );
+};
 
 const Home = () => {
   const navigate = useNavigate();
@@ -49,17 +81,23 @@ const Home = () => {
       ref={scrollRef}
       className="w-full h-screen relative bg-transparent overflow-x-hidden overflow-y-auto"
     >
+      {/* ABOVE THE FOLD: Loads Immediately */}
       <div className="top-container mb-25">
         <div className="hero w-full h-screen flex flex-col justify-center items-center relative overflow-hidden">
-          
           <div className="absolute top-[18%] sm:top-[25%] md:top-[30%] z-0 flex flex-col pointer-events-none px-4">
             <h1 className="text-[13vw] sm:text-[80px] md:text-[140px] xl:text-[180px] text-white poppins-bold-italic tracking-tighter whitespace-nowrap leading-[0.9] drop-shadow-xl text-center">
               Clash of Code
             </h1>
             <div className="flex gap-2 sm:gap-4 text-(--c4) text-[3.8vw] sm:text-xl md:text-3xl justify-center md:justify-end w-full md:pr-10 mt-2">
-              <h1 className="drop-shadow-[0_2px_10px_rgba(242,97,63,0.8)]">Outthink.</h1>
-              <h1 className="drop-shadow-[0_2px_10px_rgba(242,97,63,0.8)]">Outcode.</h1>
-              <h1 className="drop-shadow-[0_2px_10px_rgba(242,97,63,0.8)]">Outrank.</h1>
+              <h1 className="drop-shadow-[0_2px_10px_rgba(242,97,63,0.8)]">
+                Outthink.
+              </h1>
+              <h1 className="drop-shadow-[0_2px_10px_rgba(242,97,63,0.8)]">
+                Outcode.
+              </h1>
+              <h1 className="drop-shadow-[0_2px_10px_rgba(242,97,63,0.8)]">
+                Outrank.
+              </h1>
             </div>
           </div>
 
@@ -85,8 +123,12 @@ const Home = () => {
                 {profileOpen && (
                   <div className="absolute right-0 mt-3 w-48 sm:w-56 rounded-xl bg-[#111] border border-white/10 shadow-[0_10px_40px_rgba(0,0,0,0.6)] animate-in fade-in zoom-in-95">
                     <div className="px-4 py-3 border-b border-white/10">
-                      <p className="text-sm text-white font-semibold">Signed in as</p>
-                      <p className="text-sm text-(--c4) truncate">{user?.username || "Coder"}</p>
+                      <p className="text-sm text-white font-semibold">
+                        Signed in as
+                      </p>
+                      <p className="text-sm text-(--c4) truncate">
+                        {user?.username || "Coder"}
+                      </p>
                     </div>
                     <button
                       className="w-full text-left px-4 py-2 text-white hover:bg-white/10 text-sm transition-colors"
@@ -144,7 +186,11 @@ const Home = () => {
         </div>
       </div>
 
-      <ExpandingPanels />
+      {/* BELOW THE FOLD: Lazy Loaded Sections */}
+
+      <LazySection placeholderHeight="500px">
+        <ExpandingPanels />
+      </LazySection>
 
       <div className="relative w-full min-h-screen">
         <MaskContainer
@@ -162,12 +208,15 @@ const Home = () => {
         >
           <div className="space-y-10 text-[28px] sm:text-[40px] md:text-[50px] max-w-250 px-4">
             Skip long contests — jump into a{" "}
-            <span className="font-bold text-(--c4)">quick duel</span> and win fast.
+            <span className="font-bold text-(--c4)">quick duel</span> and win
+            fast.
           </div>
         </MaskContainer>
       </div>
 
-      <ScrollStatsSection scrollRef={scrollRef} />
+      <LazySection placeholderHeight="400px">
+        <ScrollStatsSection scrollRef={scrollRef} />
+      </LazySection>
 
       <div className="flex flex-col items-center gap-4 pt-32 pb-10 px-4 z-10 relative">
         <h1 className="text-center text-4xl sm:text-5xl md:text-7xl lg:text-[90px] font-bold text-black dark:text-white leading-[1.1] tracking-tight">
@@ -177,7 +226,9 @@ const Home = () => {
         </h1>
       </div>
 
-      <ScrollReview scrollRef={scrollRef} />
+      <LazySection placeholderHeight="400px">
+        <ScrollReview scrollRef={scrollRef} />
+      </LazySection>
 
       <div className="flex flex-col items-center pt-32 px-4 z-10 relative">
         <h1 className="text-center text-4xl sm:text-5xl md:text-7xl lg:text-[90px] font-bold text-black dark:text-white leading-[1.1] tracking-tight">
@@ -186,11 +237,14 @@ const Home = () => {
           <span className="text-[#F2613F]">platform</span>
         </h1>
       </div>
-      
-      <TwoPhotos />
+
+      <LazySection placeholderHeight="600px">
+        <TwoPhotos />
+      </LazySection>
+
       <Footer />
     </div>
   );
 };
 
-export default Home;  
+export default Home;
