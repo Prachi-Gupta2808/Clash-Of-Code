@@ -23,7 +23,7 @@ const runBatchForMode = async (mode, io) => {
     l += 2;
     let roomId1 = randomUUID();
     const questionSet1 = await createMatch(player1.userId, player2.userId, roomId1, mode);
-    console.log(questionSet1);
+    // console.log(questionSet1);
     
 
     leaveLobby(player1.userId, mode);
