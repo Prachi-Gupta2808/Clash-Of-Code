@@ -1,14 +1,20 @@
-import { getInformation, submitCode } from "@/api/auth";
+import { getInformation, submitCode, runCode } from "@/api/auth";
 import { useAuth } from "@/auth/AuthContext";
 import { socket } from "@/components/socket/socket";
+import { useToast } from "@/components/ToastProvider"; // Imported global toast
 import Editor from "@monaco-editor/react";
 import {
   AlertCircle,
+  Check,
+  ChevronDown,
+  ChevronUp,
   Clock,
   Code2,
+  Copy,
   Cpu,
   FileText,
   Hash,
+  Keyboard,
   Loader2,
   Play,
   RotateCcw,
@@ -31,13 +37,21 @@ const Contest = () => {
   const { user, loading } = useAuth();
   const { matchId } = useParams();
   const navigate = useNavigate();
+  const { toast } = useToast(); // Initialized global toast
 
   const [question, setQuestion] = useState(null);
   const [language, setLanguage] = useState("cpp");
   const [code, setCode] = useState("// Write your code here...");
   const [output, setOutput] = useState("");
-  const [isCompiling, setIsCompiling] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  
+  const [actionType, setActionType] = useState(null); // 'run' | 'submit' | null
+  
+  // States for Custom Input & Copy icons
+  const [showInput, setShowInput] = useState(false);
+  const [customInput, setCustomInput] = useState("");
+  const [copiedInput, setCopiedInput] = useState(false);
+  const [copiedOutput, setCopiedOutput] = useState(false);
 
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [endTime, setEndTime] = useState(null);
@@ -124,8 +138,8 @@ const Contest = () => {
     currentCode,
     currentQuestion
   ) => {
-    if (isCompiling || waiting) return;
-    setIsCompiling(true);
+    if (actionType || waiting) return;
+    setActionType("submit");
     try {
       await submitCode({
         language: currentLang,
@@ -135,16 +149,39 @@ const Contest = () => {
         submissionTimes: [new Date().toISOString()],
       });
       setWaiting(true);
+      toast.success("Time's up! Code auto-submitted.");
     } catch (err) {
       setOutput("Auto-submission failed.");
+      toast.error("Auto-submission failed.");
     } finally {
-      setIsCompiling(false);
+      setActionType(null);
+    }
+  };
+
+  const handleRun = async () => {
+    setActionType("run");
+    setOutput(""); 
+    setShowInput(false); 
+
+    try {
+      const resp = await runCode({
+        language,
+        code,
+        input: customInput
+      });
+      setOutput(resp.data.output || "Execution Complete (No Output)");
+    } catch (err) {
+      setOutput("Error connecting to compiler server.");
+      toast.error("Error connecting to server.");
+    } finally {
+      setActionType(null);
     }
   };
 
   const handleSubmit = async () => {
-    setIsCompiling(true);
-    setOutput("Compiling...");
+    setActionType("submit");
+    setOutput(""); 
+    setShowInput(false);
 
     try {
       const response = await submitCode({
@@ -156,16 +193,40 @@ const Contest = () => {
       });
       const resp = response.data;
 
-      setOutput(resp.verdict || resp.output || "Execution Complete");
+      setOutput(resp.verdict || "Execution Complete");
 
       if (resp.verdict === "AC") {
         setWaiting(true);
+        toast.success("Accepted! Great job.");
+      } else if (resp.verdict === "WA") {
+        toast.error("Wrong Answer.");
       }
     } catch (err) {
       setOutput("Error connecting to compiler server.");
+      toast.error("Submission failed.");
     } finally {
-      setIsCompiling(false);
+      setActionType(null);
     }
+  };
+
+  // --- Copy to Clipboard Handler using Global Toast ---
+  const handleCopy = (text, type) => {
+    if (!text) return;
+    navigator.clipboard.writeText(text).then(() => {
+      toast.success(`${type} copied to clipboard!`); // Triggers global toast
+      
+      // Temporarily change the icon to a checkmark
+      if (type.toLowerCase().includes("input")) {
+        setCopiedInput(true);
+        setTimeout(() => setCopiedInput(false), 2000);
+      } else {
+        setCopiedOutput(true);
+        setTimeout(() => setCopiedOutput(false), 2000);
+      }
+    }).catch(err => {
+      console.error("Failed to copy!", err);
+      toast.error("Failed to copy text.");
+    });
   };
 
   if (isLoading) {
@@ -215,7 +276,7 @@ const Contest = () => {
   }
 
   return (
-    <div className="flex w-full h-screen bg-[#0f0f0f] text-gray-300 font-sans overflow-hidden">
+    <div className="flex w-full h-screen bg-[#0f0f0f] text-gray-300 font-sans overflow-hidden relative">
       <style>{`
         .custom-scrollbar::-webkit-scrollbar { width: 8px; height: 8px; }
         .custom-scrollbar::-webkit-scrollbar-track { background-color: #18181b; }
@@ -306,17 +367,39 @@ const Contest = () => {
                       <Hash className="w-3 h-3 text-blue-400" /> Sample Case
                     </h3>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div>
-                        <div className="text-xs text-gray-500 mb-1 uppercase font-semibold">
-                          Input
+                      {/* Sample Input Block */}
+                      <div className="group">
+                        <div className="flex items-center justify-between mb-1">
+                          <div className="text-xs text-gray-500 uppercase font-semibold">
+                            Input
+                          </div>
+                          {question.preTest && (
+                            <button 
+                              onClick={() => handleCopy(question.preTest, "Input")}
+                              className="text-gray-500 hover:text-white transition-all opacity-0 group-hover:opacity-100 flex items-center gap-1 text-[10px] uppercase font-bold"
+                            >
+                              <Copy className="w-3 h-3" /> Copy
+                            </button>
+                          )}
                         </div>
                         <div className="bg-[#0f0f0f] p-3 rounded-md border border-[#27272a] font-mono text-sm text-gray-300 whitespace-pre overflow-x-auto custom-scrollbar">
                           {question.preTest || "N/A"}
                         </div>
                       </div>
-                      <div>
-                        <div className="text-xs text-gray-500 mb-1 uppercase font-semibold">
-                          Output
+                      {/* Sample Output Block */}
+                      <div className="group">
+                        <div className="flex items-center justify-between mb-1">
+                          <div className="text-xs text-gray-500 uppercase font-semibold">
+                            Output
+                          </div>
+                          {question.preTestOutput && (
+                            <button 
+                              onClick={() => handleCopy(question.preTestOutput, "Output")}
+                              className="text-gray-500 hover:text-white transition-all opacity-0 group-hover:opacity-100 flex items-center gap-1 text-[10px] uppercase font-bold"
+                            >
+                              <Copy className="w-3 h-3" /> Copy
+                            </button>
+                          )}
                         </div>
                         <div className="bg-[#0f0f0f] p-3 rounded-md border border-[#27272a] font-mono text-sm text-gray-300 whitespace-pre overflow-x-auto custom-scrollbar">
                           {question.preTestOutput || "N/A"}
@@ -353,63 +436,146 @@ const Contest = () => {
               </select>
             </div>
           </div>
-          <button
-            onClick={handleSubmit}
-            disabled={isCompiling}
-            className={`flex items-center gap-2 px-5 py-1.5 rounded-md text-sm font-semibold transition-all ${
-              isCompiling
-                ? "bg-gray-700 text-gray-400 cursor-not-allowed"
-                : "bg-(--c4) hover:bg-(--c3) cursor-pointer text-white shadow-lg shadow-green-900/20 active:scale-95"
-            }`}
-          >
-            {isCompiling ? (
-              <>
-                <Loader2 className="w-4 h-4 animate-spin" /> Running...
-              </>
-            ) : (
-              <>
-                <Play className="w-3 h-3 fill-current" /> Submit
-              </>
-            )}
-          </button>
-        </div>
+          
+          <div className="flex items-center gap-3">
+            <button
+              onClick={handleRun}
+              disabled={actionType !== null}
+              className={`flex items-center gap-2 px-5 py-1.5 rounded-md text-sm font-semibold transition-all ${
+                actionType !== null
+                  ? "bg-gray-700 text-gray-400 cursor-not-allowed"
+                  : "bg-[#27272a] hover:bg-[#3f3f46] text-gray-300 border border-[#3f3f46] cursor-pointer active:scale-95"
+              }`}
+            >
+              {actionType === "run" ? (
+                <>
+                  <Loader2 className="w-4 h-4 animate-spin" /> Running...
+                </>
+              ) : (
+                <>
+                  <Play className="w-3 h-3 fill-current" /> Run
+                </>
+              )}
+            </button>
 
-        <div className="flex-1">
-          <Editor
-            height="100%"
-            width="100%"
-            language={language}
-            value={code}
-            theme="vs-dark"
-            onChange={(value) => setCode(value || "")}
-            options={{
-              fontSize: 14,
-              minimap: { enabled: false },
-              scrollBeyondLastLine: false,
-              automaticLayout: true,
-              padding: { top: 16 },
-              fontFamily: "'Fira Code', 'Cascadia Code', Consolas, monospace",
-            }}
-          />
-        </div>
-
-        <div className="h-50 border-t border-[#27272a] bg-[#0f0f0f] flex flex-col">
-          <div className="h-9 bg-[#18181b] border-b border-[#27272a] flex items-center px-4">
-            <div className="flex items-center gap-2 text-xs font-semibold text-gray-400 uppercase tracking-wider">
-              <Terminal className="w-3 h-3" />
-              <span>Submission Result</span>
-            </div>
+            <button
+              onClick={handleSubmit}
+              disabled={actionType !== null}
+              className={`flex items-center gap-2 px-5 py-1.5 rounded-md text-sm font-semibold transition-all ${
+                actionType !== null
+                  ? "bg-gray-700 text-gray-400 cursor-not-allowed"
+                  : "bg-(--c4) hover:bg-(--c3) cursor-pointer text-white shadow-lg shadow-green-900/20 active:scale-95"
+              }`}
+            >
+              {actionType === "submit" ? (
+                <>
+                  <Loader2 className="w-4 h-4 animate-spin" /> Submitting...
+                </>
+              ) : (
+                <>
+                  <Terminal className="w-3 h-3" /> Submit
+                </>
+              )}
+            </button>
           </div>
-          <div className="flex-1 p-4 font-mono text-sm overflow-auto custom-scrollbar">
-            {output ? (
-              <pre className={`${statusColors[output] || "text-gray-300"}`}>
-                {output}
-              </pre>
-            ) : (
-              <div className="text-gray-600 italic">
-                Result will appear here after compilation...
+        </div>
+
+        <div className="flex-1 overflow-hidden flex flex-col">
+          <div className="flex-1">
+            <Editor
+              height="100%"
+              width="100%"
+              language={language}
+              value={code}
+              theme="vs-dark"
+              onChange={(value) => setCode(value || "")}
+              options={{
+                fontSize: 14,
+                minimap: { enabled: false },
+                scrollBeyondLastLine: false,
+                automaticLayout: true,
+                padding: { top: 16, bottom: 16 },
+                fontFamily: "'Fira Code', 'Cascadia Code', Consolas, monospace",
+              }}
+            />
+          </div>
+
+          <div className={`border-t border-[#27272a] bg-[#0f0f0f] flex flex-col transition-all duration-300 ease-in-out ${showInput ? 'h-64' : 'h-50'}`}>
+            <div className="h-10 bg-[#18181b] border-b border-[#27272a] flex items-center justify-between px-4 shrink-0">
+              <div className="flex items-center gap-4">
+                <button 
+                  onClick={() => setShowInput(false)}
+                  className={`flex items-center gap-2 text-xs font-semibold uppercase tracking-wider transition-colors ${!showInput ? 'text-(--c4)' : 'text-gray-500 hover:text-gray-300'}`}
+                >
+                  <Terminal className="w-3.5 h-3.5" />
+                  <span>Output</span>
+                </button>
+                <div className="w-[1px] h-4 bg-[#3f3f46]"></div>
+                <button 
+                  onClick={() => setShowInput(true)}
+                  className={`flex items-center gap-2 text-xs font-semibold uppercase tracking-wider transition-colors ${showInput ? 'text-(--c4)' : 'text-gray-500 hover:text-gray-300'}`}
+                >
+                  <Keyboard className="w-3.5 h-3.5" />
+                  <span>Custom Input</span>
+                </button>
               </div>
-            )}
+              
+              <button onClick={() => setShowInput(!showInput)} className="text-gray-500 hover:text-gray-300 p-1 rounded-md">
+                {showInput ? <ChevronDown className="w-4 h-4" /> : <ChevronUp className="w-4 h-4" />}
+              </button>
+            </div>
+
+            <div className="flex-1 p-0 overflow-hidden relative group">
+              {showInput ? (
+                <>
+                  <textarea
+                    value={customInput}
+                    onChange={(e) => setCustomInput(e.target.value)}
+                    placeholder="Enter custom input here..."
+                    className="w-full h-full bg-[#0f0f0f] text-gray-300 font-mono text-sm p-4 outline-none resize-none custom-scrollbar"
+                  />
+                  {customInput && (
+                    <button
+                      onClick={() => handleCopy(customInput, "Input")}
+                      className="absolute top-4 right-6 p-2 bg-[#18181b] border border-[#3f3f46] hover:bg-[#27272a] text-gray-300 rounded-md transition-all opacity-0 group-hover:opacity-100 flex items-center gap-2 text-xs font-semibold shadow-md"
+                      title="Copy Input"
+                    >
+                      {copiedInput ? <Check className="w-4 h-4 text-green-400" /> : <Copy className="w-4 h-4" />} Copy
+                    </button>
+                  )}
+                </>
+              ) : (
+                <div className="h-full p-4 font-mono text-sm overflow-auto custom-scrollbar relative">
+                  {actionType ? (
+                    <div className="flex items-center text-(--c4) animate-pulse font-sans">
+                      <Loader2 className="w-5 h-5 animate-spin mr-3" />
+                      <span>
+                        {actionType === "run"
+                          ? "Executing sample test cases..."
+                          : "Compiling and evaluating submission..."}
+                      </span>
+                    </div>
+                  ) : output ? (
+                    <>
+                      <pre className={`${statusColors[output] || "text-gray-300"} pr-24 whitespace-pre-wrap break-all`}>
+                        {output}
+                      </pre>
+                      <button
+                        onClick={() => handleCopy(output, "Output")}
+                        className="absolute top-4 right-6 p-2 bg-[#18181b] border border-[#3f3f46] hover:bg-[#27272a] text-gray-300 rounded-md transition-all opacity-0 group-hover:opacity-100 flex items-center gap-2 text-xs font-semibold shadow-md"
+                        title="Copy Output"
+                      >
+                        {copiedOutput ? <Check className="w-4 h-4 text-green-400" /> : <Copy className="w-4 h-4" />} Copy
+                      </button>
+                    </>
+                  ) : (
+                    <div className="text-gray-600 italic font-sans">
+                      Result will appear here after compilation...
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
           </div>
         </div>
       </div>

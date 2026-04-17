@@ -251,3 +251,31 @@ exports.submitMcq = async (req, res) => {
     return res.status(500).json({ msg: "Internal Server Error" });
   }
 };
+
+exports.runCode = async (req , res) => {
+  try {
+    const code = req.body.code.replace(/\r\n/g, "\n") ;
+    const language = req.body.language ;
+    const customInput = req.body.input ;
+
+
+    const compiledCode = await fetch(`${process.env.AWS_BACKEND_INSTANCE_URL}/compile`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        code,
+        language,
+        input: customInput,
+      }),
+    });
+
+    const compiledCodeJSON = await compiledCode.json();
+    console.log(compiledCodeJSON);
+    return res.status(200).json({ output: compiledCodeJSON.output });
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ error: "Internal Server Error" });
+  }
+};

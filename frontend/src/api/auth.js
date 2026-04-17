@@ -71,3 +71,7 @@ export const submitCode = (data) => API.post("/api/submit/contest", data);
 export const submitOutput = (data) => API.post("/api/submit/predict", data);
 
 export const submitMcq = (data) => API.post("/api/submit/mcq", data);
+
+// RUN CODE
+
+export const runCode = (data) => API.post("/api/submit/run", data) ;

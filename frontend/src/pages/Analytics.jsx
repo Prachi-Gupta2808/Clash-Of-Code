@@ -27,6 +27,14 @@ import {
   ResponsiveContainer,
 } from "recharts";
 
+// Helper function to format seconds into mm:ss min
+const formatTime = (totalSeconds) => {
+  if (isNaN(totalSeconds)) return "0:00 min";
+  const mins = Math.floor(totalSeconds / 60);
+  const secs = Math.floor(totalSeconds % 60);
+  return `${mins}:${secs.toString().padStart(2, "0")} min`;
+};
+
 const Analytics = () => {
   const { user } = useAuth();
   const { matchId } = useParams();
@@ -88,7 +96,7 @@ const Analytics = () => {
                 style={{ backgroundColor: entry.color }}
               />
               <span className="text-gray-400">{entry.name}:</span>
-              <span className="text-white font-mono">{entry.value}s</span>
+              <span className="text-white font-mono">{formatTime(entry.value)}</span>
             </div>
           ))}
         </div>
@@ -164,18 +172,18 @@ const Analytics = () => {
               <p className="text-sm text-gray-400 mb-1 flex items-center gap-2">
                 <Clock className="w-4 h-4 text-blue-400" /> Avg Time / Question
               </p>
-              <p className="text-2xl font-bold text-white">{you.avgTime}s</p>
+              <p className="text-2xl font-bold text-white">{formatTime(you.avgTime)}</p>
             </div>
             <div className="text-right">
               <p className="text-sm text-gray-500 mb-1">Opponent</p>
               <p className="text-xl font-bold text-gray-500">
-                {opponent.avgTime}s
+                {formatTime(opponent.avgTime)}
               </p>
             </div>
           </div>
         </div>
 
-        {/* CONTEST ONLY: Problem Breakdown Details (Non Colored) */}
+        {/* CONTEST ONLY: Problem Breakdown Details */}
         {isContest && questionsBreakdown && questionsBreakdown.length > 0 && (
           <div className="bg-[#18181b] border border-[#27272a] rounded-2xl p-6 md:p-8">
             <div className="flex items-center gap-2 mb-6">
@@ -363,7 +371,8 @@ const Analytics = () => {
                   stroke="#52525b"
                   tick={{ fill: "#71717a", fontSize: 12 }}
                   axisLine={{ stroke: "#27272a" }}
-                  tickFormatter={(val) => `${val}s`}
+                  width={75} 
+                  tickFormatter={formatTime}
                 />
                 <Tooltip
                   content={<CustomTooltip />}
@@ -472,7 +481,7 @@ const Analytics = () => {
                         {q.isCorrect ? "+1 Score" : "0 Score"}
                       </div>
                       <div className="text-xs text-gray-500 flex items-center gap-1">
-                        <Clock className="w-3 h-3" /> {q.timeTaken}s
+                        <Clock className="w-3 h-3" /> {formatTime(q.timeTaken)}
                       </div>
                     </div>
                   </div>
