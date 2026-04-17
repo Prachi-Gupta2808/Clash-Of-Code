@@ -13,6 +13,7 @@ import {
   Code2,
   FileText,
   TerminalSquare,
+  AlertCircle // Added for Draw state
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
@@ -79,6 +80,7 @@ const Analytics = () => {
     matchType,
     yourCodeSubmission,
     opponentCodeSubmission,
+    isTie // <-- EXTRACTED TIE FLAG
   } = analyticsData;
 
   const isWinner = analyticsData.winnerId === you.id;
@@ -114,14 +116,22 @@ const Analytics = () => {
           <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-32 bg-(--c4) blur-[120px] opacity-10 pointer-events-none"></div>
 
           <div className="flex items-center gap-6 z-10">
+            {/* Dynamic Icon and Colors based on Match Result */}
             <div
-              className={`p-4 rounded-full ${isWinner ? "bg-yellow-500/10 text-yellow-500" : "bg-gray-800 text-gray-400"}`}
+              className={`p-4 rounded-full ${
+                isTie 
+                  ? "bg-blue-500/10 text-blue-500" 
+                  : isWinner 
+                    ? "bg-yellow-500/10 text-yellow-500" 
+                    : "bg-red-500/10 text-red-500"
+              }`}
             >
-              <Trophy className="w-10 h-10" />
+              {isTie ? <AlertCircle className="w-10 h-10" /> : <Trophy className="w-10 h-10" />}
             </div>
             <div>
+              {/* Dynamic Header Text */}
               <h1 className="text-3xl font-bold text-white tracking-tight mb-1">
-                {isWinner ? "Victory!" : "Match Defeat"}
+                {isTie ? "Match Draw!" : isWinner ? "Victory!" : "Match Defeat"}
               </h1>
               <p className="text-gray-400 flex items-center gap-2">
                 <Swords className="w-4 h-4" /> Match vs {opponent.name}

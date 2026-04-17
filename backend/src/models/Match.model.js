@@ -25,7 +25,7 @@ const matchSchema = new mongoose.Schema(
     endTime: {
       type: Date,
     },
-
+    isTie : { type : Boolean , default : true },
     submissions: {
       type: [
         {

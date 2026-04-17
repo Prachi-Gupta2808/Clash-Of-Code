@@ -95,6 +95,7 @@ exports.getMatchAnalytics = async (req, res) => {
     res.json({
       matchType: match.theme,
       winnerId: match.winner,
+      isTie: match.isTie,
       you: {
         id: you._id,
         name: yourDetails.username,
@@ -142,7 +143,9 @@ exports.getRecentMatches = async (req, res) => {
       const isPlayer1 = match.player1._id.equals(userId);
       const you = isPlayer1 ? match.player1 : match.player2;
       const opponent = isPlayer1 ? match.player2 : match.player1;
-      const isWinner = match.winner?._id.equals(userId);
+      
+      // Safely check if they are the winner, accounting for null winners
+      const isWinner = match.winner ? match.winner._id.equals(userId) : false;
 
       return {
         matchId: match.matchId,
@@ -156,6 +159,7 @@ exports.getRecentMatches = async (req, res) => {
           avatar: opponent.avatar,
         },
         isWinner,
+        isTie: match.isTie || false, // <--- ADD THIS
         createdAt: match.createdAt,
       };
     });

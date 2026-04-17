@@ -1,7 +1,7 @@
 import { getInformation, submitCode, runCode } from "@/api/auth";
 import { useAuth } from "@/auth/AuthContext";
 import { socket } from "@/components/socket/socket";
-import { useToast } from "@/components/ToastProvider"; // Imported global toast
+import { useToast } from "@/components/ToastProvider";
 import Editor from "@monaco-editor/react";
 import {
   AlertCircle,
@@ -37,7 +37,7 @@ const Contest = () => {
   const { user, loading } = useAuth();
   const { matchId } = useParams();
   const navigate = useNavigate();
-  const { toast } = useToast(); // Initialized global toast
+  const { toast } = useToast();
 
   const [question, setQuestion] = useState(null);
   const [language, setLanguage] = useState("cpp");
@@ -45,9 +45,8 @@ const Contest = () => {
   const [output, setOutput] = useState("");
   const [isLoading, setIsLoading] = useState(true);
   
-  const [actionType, setActionType] = useState(null); // 'run' | 'submit' | null
+  const [actionType, setActionType] = useState(null);
   
-  // States for Custom Input & Copy icons
   const [showInput, setShowInput] = useState(false);
   const [customInput, setCustomInput] = useState("");
   const [copiedInput, setCopiedInput] = useState(false);
@@ -72,7 +71,11 @@ const Contest = () => {
 
     socket.on("MATCH_RESULT", (data) => {
       const myResult = data.scores?.find((s) => s.userId === user._id);
-      setMatchResult(myResult || data);
+      setMatchResult({
+        ...myResult,
+        isTie: data.isTie,
+        winner: data.winner
+      });
       setIsSubmitted(true);
       setWaiting(false);
     });
@@ -209,13 +212,11 @@ const Contest = () => {
     }
   };
 
-  // --- Copy to Clipboard Handler using Global Toast ---
   const handleCopy = (text, type) => {
     if (!text) return;
     navigator.clipboard.writeText(text).then(() => {
-      toast.success(`${type} copied to clipboard!`); // Triggers global toast
+      toast.success(`${type} copied to clipboard!`);
       
-      // Temporarily change the icon to a checkmark
       if (type.toLowerCase().includes("input")) {
         setCopiedInput(true);
         setTimeout(() => setCopiedInput(false), 2000);
@@ -241,25 +242,35 @@ const Contest = () => {
   }
 
   if (isSubmitted) {
+    const isTie = matchResult?.isTie;
+
     return (
       <div className="flex w-full h-screen bg-[#0f0f0f] text-gray-300 font-sans items-center justify-center">
         <div className="bg-[#18181b] p-12 rounded-2xl border border-[#27272a] text-center max-w-lg w-full shadow-2xl relative overflow-hidden">
-          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-20 bg-(--c4) blur-[100px] opacity-20 pointer-events-none"></div>
-          <Trophy className="w-20 h-20 text-yellow-500 mx-auto mb-6 drop-shadow-lg" />
+          <div className={`absolute top-0 left-1/2 -translate-x-1/2 w-full h-20 blur-[100px] opacity-20 pointer-events-none ${isTie ? 'bg-blue-500' : 'bg-(--c4)'}`}></div>
+          
+          {isTie ? (
+             <AlertCircle className="w-20 h-20 text-blue-500 mx-auto mb-6 drop-shadow-lg" />
+          ) : (
+             <Trophy className="w-20 h-20 text-yellow-500 mx-auto mb-6 drop-shadow-lg" />
+          )}
+          
           <h1 className="text-4xl font-bold text-white mb-2">
             Match Completed
           </h1>
           <p className="text-gray-400 mb-8 text-lg">
-            The coding contest has ended.
+            {isTie ? "Time's up! It's a draw." : "The coding contest has ended."}
           </p>
+          
           <div className="bg-[#0f0f0f] rounded-xl p-6 mb-8 border border-[#27272a]">
             <p className="text-sm text-gray-500 uppercase tracking-widest font-semibold mb-2">
               Result
             </p>
-            <div className="text-2xl font-mono font-bold text-white">
-              {matchResult?.msg || matchResult?.verdict || "Completed"}
+            <div className={`text-2xl font-mono font-bold ${isTie ? 'text-blue-400' : 'text-white'}`}>
+              {isTie ? "TIE" : (matchResult?.msg || matchResult?.verdict || "Completed")}
             </div>
           </div>
+          
           <button
             onClick={() => navigate(`/analytics/${matchId}`)}
             className="w-full py-4 bg-[#27272a] hover:bg-[#3f3f46] text-white rounded-xl font-bold text-lg transition-all flex items-center justify-center gap-2 cursor-pointer"
@@ -367,7 +378,6 @@ const Contest = () => {
                       <Hash className="w-3 h-3 text-blue-400" /> Sample Case
                     </h3>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      {/* Sample Input Block */}
                       <div className="group">
                         <div className="flex items-center justify-between mb-1">
                           <div className="text-xs text-gray-500 uppercase font-semibold">
@@ -386,7 +396,6 @@ const Contest = () => {
                           {question.preTest || "N/A"}
                         </div>
                       </div>
-                      {/* Sample Output Block */}
                       <div className="group">
                         <div className="flex items-center justify-between mb-1">
                           <div className="text-xs text-gray-500 uppercase font-semibold">

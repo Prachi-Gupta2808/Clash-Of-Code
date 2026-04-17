@@ -2,8 +2,8 @@ import { getInformation, submitMcq } from "@/api/auth";
 import { useAuth } from "@/auth/AuthContext";
 import { socket } from "@/components/socket/socket";
 import Editor from "@monaco-editor/react";
-import { Clock, HelpCircle, LayoutGrid, Loader2, Trophy } from "lucide-react";
-import { useEffect, useState } from "react";
+import { AlertCircle, Clock, HelpCircle, LayoutGrid, Loader2, Trophy } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import AfterMatch from "../AfterMatch";
 
@@ -23,6 +23,13 @@ const Mcq = () => {
   const [waiting, setWaiting] = useState(false);
   const [timeLeft, setTimeLeft] = useState(0);
   const [submitting, setSubmitting] = useState(false);
+  const [matchResult, setMatchResult] = useState(null);
+
+  const latestState = useRef({ userAnswers, answerTimestamps });
+
+  useEffect(() => {
+    latestState.current = { userAnswers, answerTimestamps };
+  }, [userAnswers, answerTimestamps]);
 
   useEffect(() => {
     if (!user || !matchId) return;
@@ -30,9 +37,9 @@ const Mcq = () => {
     socket.emit("JOIN_ROOM", matchId);
 
     socket.on("MATCH_RESULT", (data) => {
-      const myScore =
-        data.scores.find((s) => s.userId === user._id)?.score ?? 0;
+      const myScore = data.scores.find((s) => s.userId === user._id)?.score ?? 0;
       setFinalScore(myScore);
+      setMatchResult({ isTie: data.isTie, winner: data.winner }); 
       setIsSubmitted(true);
       setWaiting(false);
     });
@@ -57,7 +64,8 @@ const Mcq = () => {
 
       if (remaining <= 0) {
         clearInterval(interval);
-        handleSubmitTest();
+        const { userAnswers: currentAnswers, answerTimestamps: currentTimestamps } = latestState.current;
+        handleSubmitTest(currentAnswers, currentTimestamps);
       } else {
         setTimeLeft(remaining);
       }
@@ -145,26 +153,38 @@ const Mcq = () => {
   }
 
   if (isSubmitted) {
+    const isTie = matchResult?.isTie;
+
     return (
       <div className="flex w-full h-screen bg-[#0f0f0f] text-gray-300 font-sans items-center justify-center">
         <div className="bg-[#18181b] p-12 rounded-2xl border border-[#27272a] text-center max-w-lg w-full shadow-2xl relative overflow-hidden">
-          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-20 bg-(--c4) blur-[100px] opacity-20 pointer-events-none"></div>
-          <Trophy className="w-20 h-20 text-yellow-500 mx-auto mb-6 drop-shadow-lg" />
-          <h1 className="text-4xl font-bold text-white mb-2">Quiz Completed</h1>
+          <div className={`absolute top-0 left-1/2 -translate-x-1/2 w-full h-20 blur-[100px] opacity-20 pointer-events-none ${isTie ? 'bg-blue-500' : 'bg-(--c4)'}`}></div>
+          
+          {isTie ? (
+             <AlertCircle className="w-20 h-20 text-blue-500 mx-auto mb-6 drop-shadow-lg" />
+          ) : (
+             <Trophy className="w-20 h-20 text-yellow-500 mx-auto mb-6 drop-shadow-lg" />
+          )}
+
+          <h1 className="text-4xl font-bold text-white mb-2">
+            {isTie ? "Match Drawn" : "Quiz Completed"}
+          </h1>
           <p className="text-gray-400 mb-8 text-lg">
-            Your answers have been recorded.
+            {isTie ? "Time's up! It's a draw." : "Your answers have been recorded."}
           </p>
+
           <div className="bg-[#0f0f0f] rounded-xl p-6 border border-[#27272a]">
             <p className="text-sm text-gray-500 uppercase tracking-widest font-semibold mb-2">
               Final Score
             </p>
-            <div className="text-6xl font-mono font-bold text-white">
+            <div className={`text-6xl font-mono font-bold ${isTie ? 'text-blue-400' : 'text-white'}`}>
               {finalScore}{" "}
               <span className="text-3xl text-gray-600">
                 / {questions.length}
               </span>
             </div>
           </div>
+
           <button
             onClick={() => navigate(`/analytics/${matchId}`)}
             className="w-full py-4 bg-[#27272a] hover:bg-[#3f3f46] text-white rounded-xl font-bold text-lg transition-all flex items-center justify-center gap-2 cursor-pointer mt-8"
@@ -212,8 +232,6 @@ const Mcq = () => {
         <div className="flex-1 overflow-y-auto p-6 custom-scrollbar">
           <div className="max-w-3xl mx-auto">
             <div className="mb-6">
-              
-              {/* Monaco Editor Implementation */}
               <div className="rounded-lg overflow-hidden border border-[#27272a] mb-4">
                 <Editor
                   height="250px"
@@ -227,7 +245,7 @@ const Mcq = () => {
                     scrollBeyondLastLine: false,
                     fontSize: 15,
                     padding: { top: 16, bottom: 16 },
-                    lineNumbers: "off", // Set to "on" if you want line numbers for code
+                    lineNumbers: "off", 
                     contextmenu: false,
                   }}
                 />

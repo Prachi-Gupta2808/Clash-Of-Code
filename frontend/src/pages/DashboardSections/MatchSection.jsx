@@ -87,12 +87,14 @@ const MatchSection = () => {
                 <div className="text-center mt-2">
                   <span
                     className={`text-xs font-bold uppercase tracking-widest px-3 py-1 rounded-full ${
-                      match.isWinner
+                      match.isTie
+                        ? "bg-blue-900/20 text-blue-400 border border-blue-900/40"
+                        : match.isWinner
                         ? "bg-green-900/20 text-green-400 border border-green-900/40"
                         : "bg-red-900/20 text-red-400 border border-red-900/40"
                     }`}
                   >
-                    {match.isWinner ? "Victory" : "Defeat"}
+                    {match.isTie ? "Draw" : match.isWinner ? "Victory" : "Defeat"}
                   </span>
                 </div>
 
