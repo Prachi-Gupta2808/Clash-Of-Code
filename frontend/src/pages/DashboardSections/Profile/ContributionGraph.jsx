@@ -84,8 +84,8 @@ export default function Heatmap({ rawApiData = [] }) {
           Submission History
         </h2>
         <div className="text-xs text-gray-400">
-          {dailyData.reduce((acc, curr) => acc + curr.count, 0)} contributions
-          in the last year
+          {dailyData.reduce((acc, curr) => acc + curr.count, 0)} submissions
+          in the past one year
         </div>
       </div>
       <div className="overflow-x-auto pb-2 scrollbar-thin scrollbar-thumb-neutral-700 scrollbar-track-transparent">

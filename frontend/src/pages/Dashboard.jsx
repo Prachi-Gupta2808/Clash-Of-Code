@@ -86,7 +86,7 @@ const Dashboard = () => {
 
             <div className="mt-4 flex flex-col gap-2">
               {links.map((link, idx) => (
-                <SidebarLink key={idx} link={link} />
+                <SidebarLink key={idx} link={link} className="cursor-pointer" />
               ))}
             </div>
           </div>

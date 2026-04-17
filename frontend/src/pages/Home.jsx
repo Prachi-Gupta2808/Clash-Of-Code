@@ -131,20 +131,20 @@ const Home = () => {
                       </p>
                     </div>
                     <button
-                      className="w-full text-left px-4 py-2 text-white hover:bg-white/10 text-sm transition-colors"
+                      className="w-full text-left px-4 py-2 text-white hover:bg-white/10 text-sm transition-colors cursor-pointer"
                       onClick={() => navigate("/dashboard")}
                     >
                       Dashboard
                     </button>
                     <button
-                      className="w-full text-left px-4 py-2 text-white hover:bg-white/10 text-sm transition-colors"
+                      className="w-full text-left px-4 py-2 text-white hover:bg-white/10 text-sm transition-colors cursor-pointer"
                       onClick={() => navigate("/contact")}
                     >
                       Contact Us
                     </button>
                     <div className="border-t border-white/10 mt-1">
                       <button
-                        className="w-full text-left px-4 py-2 text-red-400 hover:bg-red-500/10 text-sm transition-colors rounded-b-xl"
+                        className="w-full text-left px-4 py-2 text-red-400 hover:bg-red-500/10 text-sm transition-colors rounded-b-xl cursor-pointer"
                         onClick={handleLogout}
                       >
                         Logout

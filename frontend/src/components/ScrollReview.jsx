@@ -8,7 +8,7 @@ gsap.registerPlugin(ScrollTrigger);
 
 const reviews = [
   {
-    name: "Divyanshi",
+    name: "Vanshika",
     platform: "COC",
     text: "Finally, a platform where coding feels",
     direction: "left",
@@ -20,19 +20,19 @@ const reviews = [
     direction: "right",
   },
   {
-    name: "Vanshika",
+    name: "Divyanshi",
     platform: "LinkedIn",
     text: "Simple, sharp, competitive.",
     direction: "left",
   },
   {
-    name: "Aman",
+    name: "Parth",
     platform: "LinkedIn",
     text: "Where Practice meets pressure.",
     direction: "right",
   },
   {
-    name: "Lovepreet",
+    name: "Mehak",
     platform: "LinkedIn",
     text: "Everything feels instant and focused.",
     direction: "left",
