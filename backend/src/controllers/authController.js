@@ -4,16 +4,12 @@ const { OAuth2Client } = require("google-auth-library");
 
 const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
-const getCookieOptions = () => {
-  const isProd = process.env.NODE_ENV === "production";
-
-  return {
-    httpOnly: true,
-    secure: isProd,                 // HTTPS only in production
-    sameSite: isProd ? "None" : "Lax",
-    path: "/",
-  };
-};
+const getCookieOptions = () => ({
+  httpOnly: true,
+  secure: true,
+  sameSite: "None",
+  path: "/",
+});
 
 const sanitizeUser = (user) => {
   const obj = user.toObject();
