@@ -13,10 +13,8 @@ export const AuthProvider = ({ children }) => {
       try {
         const res = await getMe();
         setUser(res.data.user);
-        socket.connect();
       } catch {
         setUser(null);
-        socket.disconnect();
       } finally {
         setLoading(false);
       }
@@ -24,6 +22,14 @@ export const AuthProvider = ({ children }) => {
 
     fetchUser();
   }, []);
+
+  useEffect(() => {
+    if (user) {
+      socket.connect();
+    } else {
+      socket.disconnect();
+    }
+  }, [user]);
 
   return (
     <AuthContext.Provider value={{ user, setUser, loading }}>
