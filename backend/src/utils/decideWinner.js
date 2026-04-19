@@ -14,13 +14,22 @@ const multipliers = {
     tie: 1,
 };
 
-// used for the optional conditions when the submissions are missing
 const MAX_DATE = new Date('9999-12-31T23:59:59Z');
+
+const getTitleForRating = (rating) => {
+    if (rating >= 2000) return "Ultimate Champion";
+    if (rating >= 1800) return "Grand Champion";
+    if (rating >= 1600) return "Champion";
+    if (rating >= 1400) return "Master";
+    if (rating >= 1200) return "Elite";
+    if (rating >= 1000) return "Contender";
+    return "Challenger"; 
+};
 
 exports.decideWinner = async (match) => {
     if (match.resultDeclared) return;
 
-    // the optional conditions are for the case where the submissions are missing like when users opens the contest and leaves the page
+    // Handle missing submissions
     const subA = match.submissions.find(s => s.userId.toString() === match.player1.toString())
         || { userId: match.player1, score: 0, submittedAt: MAX_DATE };
     const subB = match.submissions.find(s => s.userId.toString() === match.player2.toString())
@@ -51,7 +60,7 @@ exports.decideWinner = async (match) => {
         p2: { id: match.player2, delta: 0 }
     };
 
-    // If the match is not friendly then only change the ratings
+    // Process rating and title changes
     if (!match.isChallenged) {
         const [userA, userB] = await Promise.all([
             User.findById(match.player1),
@@ -91,12 +100,18 @@ exports.decideWinner = async (match) => {
             match.ratingChange.p1.delta = deltaA;
             match.ratingChange.p2.delta = deltaB;
 
+            // Apply new ratings
             userA.rating = Math.max(0, ra + deltaA);
             userB.rating = Math.max(0, rb + deltaB);
+
+            userA.title = getTitleForRating(userA.rating);
+            userB.title = getTitleForRating(userB.rating);
+
             await Promise.all([userA.save(), userB.save()]);
         }
     }
 
+    // Finalize match state
     match.winner = isTie ? null : winner;
     match.status = "FINISHED";
     match.resultDeclared = true;
@@ -105,6 +120,7 @@ exports.decideWinner = async (match) => {
 
     await match.save();
 
+    // Emit results
     const io = getIO();
     io.to(match.matchId).emit("MATCH_RESULT", {
         winner: isTie ? null : winner,
