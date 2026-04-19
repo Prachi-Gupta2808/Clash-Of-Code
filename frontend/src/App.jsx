@@ -15,6 +15,7 @@ import Playground from "./pages/Playground";
 import SignUp from "./pages/SignUp";
 import ThemeSelect from "./pages/ThemeSelect";
 import Contact from "./pages/Contact";
+import NotFound from "./pages/NotFound";
 
 function App() {
   const { user, loading } = useAuth();
@@ -53,6 +54,7 @@ function App() {
           <Route path="/post-match/:matchId" element={<AfterMatch />} />
           <Route path="/analytics/:matchId" element={<Analytics />} />
           <Route path="/contact" element={<Contact />} />
+          <Route path="*" element={<NotFound />} />
         </Route>
       </Routes>
     </>
