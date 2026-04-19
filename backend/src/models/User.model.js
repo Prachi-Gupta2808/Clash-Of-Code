@@ -63,7 +63,7 @@ const userSchema = new mongoose.Schema(
     },
     title: {
       type: String,
-      default: "Newbie",
+      default: "Challenger",
     },
     friendList: [
       {
