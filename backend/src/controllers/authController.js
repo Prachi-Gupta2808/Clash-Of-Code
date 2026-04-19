@@ -4,6 +4,17 @@ const { OAuth2Client } = require("google-auth-library");
 
 const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
+const getCookieOptions = () => {
+  const isProd = process.env.NODE_ENV === "production";
+
+  return {
+    httpOnly: true,
+    secure: isProd,                 // HTTPS only in production
+    sameSite: isProd ? "None" : "Lax",
+    path: "/",
+  };
+};
+
 const sanitizeUser = (user) => {
   const obj = user.toObject();
   delete obj.password;
@@ -18,11 +29,8 @@ const createToken = (userId, isAdmin) => {
 
 const setTokenCookie = (res, token) => {
   res.cookie("token", token, {
-    httpOnly: true,
-    secure: true,
-    sameSite: "None",
-    path: "/",
-    maxAge: 7 * 24 * 60 * 60 * 1000,
+    ...getCookieOptions(),
+    maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
   });
 };
 
@@ -140,10 +148,7 @@ exports.googleAuth = async (req, res) => {
 // LOGOUT
 exports.logout = (req, res) => {
   res.clearCookie("token", {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
-    sameSite: process.env.NODE_ENV === "production" ? "None" : "Lax",
-    path: "/",
+    ...getCookieOptions(),
   });
 
   res.status(200).json({ message: "Logged out" });
