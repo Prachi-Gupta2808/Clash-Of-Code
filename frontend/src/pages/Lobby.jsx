@@ -32,7 +32,7 @@ const Lobby = () => {
 
   return (
     <div>
-      <WaitingForOpponent />
+      <WaitingForOpponent mode={mode} />
     </div>
   );
 };

@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { X, Search } from "lucide-react";
 import { useAuth } from "@/auth/AuthContext";
+import { socket } from "@/components/socket/socket";
 
 const TIPS = [
   "Pro Tip: Always check for edge cases like empty arrays or null values.",
@@ -14,7 +15,7 @@ const TIPS = [
   "Algorithm stuck? Try rubber duck debugging. Explain it to an inanimate object.",
 ];
 
-const WaitingForOpponent = () => {
+const WaitingForOpponent = ({ mode }) => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const [elapsedTime, setElapsedTime] = useState(0);
@@ -39,6 +40,10 @@ const WaitingForOpponent = () => {
   };
 
   const handleCancel = () => {
+    socket.emit("CANCEL" , {
+      userId : user._id,
+      mode : mode
+    })
     navigate("/");
   };
 
