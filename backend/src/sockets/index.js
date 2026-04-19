@@ -4,7 +4,7 @@ const { randomUUID } = require("crypto");
 const { createMatch } = require("../services/matchService");
 
 const VALID_MODES = ["mcq", "predict", "contest"];
-const userSocketMap = {};
+const userSocketMap = {}; // userId -> Set of socketIds
 
 module.exports = function initSockets(io) {
   io.use(socketAuth);
@@ -13,8 +13,22 @@ module.exports = function initSockets(io) {
     const userId = socket.user._id.toString();
     const rating = socket.user.rating;
 
-    userSocketMap[userId] = socket.id;
-    console.log("🔌 Socket connected:", userId);
+    if (!userSocketMap[userId]) {
+      userSocketMap[userId] = new Set();
+    }
+
+    userSocketMap[userId].add(socket.id);
+
+    console.log("🔌 Connected:", {
+      userId,
+      socketId: socket.id,
+      totalSockets: userSocketMap[userId].size,
+    });
+
+    console.log("🔌 Socket connected:", {
+      userId,
+      socketId: socket.id,
+    });;
 
     socket.on("PLAY_NOW", ({ mode }) => {
       enterLobby(userId, socket, mode, rating);
@@ -26,34 +40,50 @@ module.exports = function initSockets(io) {
 
     socket.on("CHALLENGE_REQUEST", ({ toUserId, theme }) => {
       if (!VALID_MODES.includes(theme)) return;
-      console.log("CHALLENGE_REQUEST received:", { toUserId, theme });
-      console.log("userSocketMap:", userSocketMap);
-      const friendSocketId = userSocketMap[toUserId];
-      console.log("Friend socket ID:", friendSocketId);
 
-      if (!friendSocketId) {
+      // Prevent self-challenge
+      if (toUserId === userId) {
+        socket.emit("CHALLENGE_ERROR", { message: "You cannot challenge yourself." });
+        return;
+      }
+
+      console.log("[CHALLENGE_REQUEST]", {
+        from: userId,
+        to: toUserId,
+        theme,
+      });
+
+      // Get all sockets of friend (we store all the sockets of the user which helps in case he has multiple tabs open)
+      const friendSockets = userSocketMap[toUserId];
+
+      if (!friendSockets || friendSockets.size === 0) {
         socket.emit("CHALLENGE_ERROR", { message: "Friend is not online." });
         return;
       }
 
       const challengeId = randomUUID();
 
-      io.to(friendSocketId).emit("INCOMING_CHALLENGE", {
-        challengeId,
-        fromUserId: userId,
-        fromUsername: socket.user.username,
-        theme,
-      });
+      // Emit to all sockets of friend
+      for (const sockId of friendSockets) {
+        io.to(sockId).emit("INCOMING_CHALLENGE", {
+          challengeId,
+          fromUserId: userId,
+          fromUsername: socket.user.username,
+          theme,
+        });
+      }
 
       socket.emit("CHALLENGE_SENT", { challengeId });
 
-      console.log(`⚔️ Challenge [${theme}]: ${userId} → ${toUserId}`);
+      console.log(
+        `⚔️ Challenge [${theme}]: ${userId} -> ${toUserId} | sockets: ${friendSockets.size}`
+      );
     });
 
     socket.on("CHALLENGE_ACCEPTED", async ({ fromUserId, theme }) => {
-      const challengerSocketId = userSocketMap[fromUserId];
+      const challengerSockets = userSocketMap[fromUserId];
 
-      if (!challengerSocketId) {
+      if (!challengerSockets || challengerSockets.size === 0) {
         socket.emit("CHALLENGE_ERROR", { message: "Challenger disconnected." });
         return;
       }
@@ -69,14 +99,18 @@ module.exports = function initSockets(io) {
           true
         );
 
-        io.sockets.sockets.get(challengerSocketId)?.join(roomId);
+        for (const sockId of challengerSockets) {
+          io.sockets.sockets.get(sockId)?.join(roomId);
+        }
         socket.join(roomId);
 
-        io.to(challengerSocketId).emit("CHALLENGE_PAIRED", {
-          opponent: userId,
-          roomId,
-          mode: theme,
-        });
+        for (const sockId of challengerSockets) {
+          io.to(sockId).emit("CHALLENGE_PAIRED", {
+            opponent: userId,
+            roomId,
+            mode: theme,
+          });
+        }
 
         socket.emit("CHALLENGE_PAIRED", {
           opponent: fromUserId,
@@ -99,17 +133,29 @@ module.exports = function initSockets(io) {
     });
 
     socket.on("CHALLENGE_DECLINED", ({ fromUserId }) => {
-      const challengerSocketId = userSocketMap[fromUserId];
-      if (challengerSocketId) {
-        io.to(challengerSocketId).emit("CHALLENGE_DECLINED", {
-          message: `${socket.user.username} declined your challenge.`,
-        });
+      const challengerSockets = userSocketMap[fromUserId];
+
+      if (challengerSockets) {
+        for (const sockId of challengerSockets) {
+          io.to(sockId).emit("CHALLENGE_DECLINED", {
+            message: `${socket.user.username} declined your challenge.`,
+          });
+        }
       }
-      console.log(`❌ Challenge declined by ${userId}`);
     });
 
     socket.on("disconnect", () => {
-      delete userSocketMap[userId];
+      userSocketMap[userId]?.delete(socket.id);
+
+      if (userSocketMap[userId]?.size === 0) {
+        delete userSocketMap[userId];
+      }
+
+      console.log("❌ Disconnected:", {
+        userId,
+        socketId: socket.id,
+        remaining: userSocketMap[userId]?.size || 0,
+      });
       leaveLobby(userId, "mcq");
       leaveLobby(userId, "predict");
       leaveLobby(userId, "contest");

@@ -14,15 +14,22 @@ const multipliers = {
     tie: 1,
 };
 
+// used for the optional conditions when the submissions are missing
+const MAX_DATE = new Date('9999-12-31T23:59:59Z');
+
 exports.decideWinner = async (match) => {
     if (match.resultDeclared) return;
 
-    const subA = match.submissions.find(s => s.userId.toString() === match.player1.toString()) || { userId: match.player1, score: 0, submittedAt: Infinity };
-    const subB = match.submissions.find(s => s.userId.toString() === match.player2.toString()) || { userId: match.player2, score: 0, submittedAt: Infinity };
+    // the optional conditions are for the case where the submissions are missing like when users opens the contest and leaves the page
+    const subA = match.submissions.find(s => s.userId.toString() === match.player1.toString())
+        || { userId: match.player1, score: 0, submittedAt: MAX_DATE };
+    const subB = match.submissions.find(s => s.userId.toString() === match.player2.toString())
+        || { userId: match.player2, score: 0, submittedAt: MAX_DATE };
 
     let winner = null;
     let isTie = false;
 
+    // 1. Determine Winner
     if (subA.score > subB.score) {
         winner = subA.userId;
     } else if (subA.score < subB.score) {
@@ -39,62 +46,63 @@ exports.decideWinner = async (match) => {
         }
     }
 
-    const userA = await User.findById(match.player1);
-    const userB = await User.findById(match.player2);
-
-    if (!userA || !userB) return;
-
-    let ra = userA.rating;
-    let rb = userB.rating;
-
-    let ka = kValues[match.theme] || 20;
-    let kb = kValues[match.theme] || 20;
-
-    const matchCntA = await Match.countDocuments({ player1: userA._id });
-    const matchCntB = await Match.countDocuments({ player2: userB._id });
-
-    if (matchCntA <= 5) {
-        ka *= isTie ? multipliers.tie : (winner.toString() === userA._id.toString() ? multipliers.win : multipliers.lose);
-    }
-    if (matchCntB <= 5) {
-        kb *= isTie ? multipliers.tie : (winner.toString() === userB._id.toString() ? multipliers.win : multipliers.lose);
-    }
-
-    let Ea = 1 / (1 + Math.pow(10, (rb - ra) / 400));
-    let Eb = 1 / (1 + Math.pow(10, (ra - rb) / 400));
-
-    let Sa, Sb;
-    if (isTie) {
-        Sa = 0.5;
-        Sb = 0.5;
-    } else if (winner.toString() === userA._id.toString()) {
-        Sa = 1;
-        Sb = 0;
-    } else {
-        Sa = 0;
-        Sb = 1;
-    }
-
-    let deltaA = ka * (Sa - Ea);
-    let deltaB = kb * (Sb - Eb);
-
-    userA.rating = Math.max(0, userA.rating + deltaA);
-    userB.rating = Math.max(0, userB.rating + deltaB);
-
-    await userA.save();
-    await userB.save();
-
     match.ratingChange = {
-        p1: { id: userA._id, delta: deltaA },
-        p2: { id: userB._id, delta: deltaB }
+        p1: { id: match.player1, delta: 0 },
+        p2: { id: match.player2, delta: 0 }
     };
+
+    // If the match is not friendly then only change the ratings
+    if (!match.isChallenged) {
+        const [userA, userB] = await Promise.all([
+            User.findById(match.player1),
+            User.findById(match.player2)
+        ]);
+
+        if (userA && userB) {
+            let ra = userA.rating || 0;
+            let rb = userB.rating || 0;
+
+            let ka = kValues[match.theme] || 20;
+            let kb = kValues[match.theme] || 20;
+
+            const [matchCntA, matchCntB] = await Promise.all([
+                Match.countDocuments({ $or: [{ player1: userA._id }, { player2: userA._id }] }),
+                Match.countDocuments({ $or: [{ player1: userB._id }, { player2: userB._id }] })
+            ]);
+
+            const winnerStr = isTie ? null : winner.toString();
+
+            if (matchCntA <= 5) {
+                ka *= isTie ? multipliers.tie : (winnerStr === userA._id.toString() ? multipliers.win : multipliers.lose);
+            }
+            if (matchCntB <= 5) {
+                kb *= isTie ? multipliers.tie : (winnerStr === userB._id.toString() ? multipliers.win : multipliers.lose);
+            }
+
+            let Ea = 1 / (1 + Math.pow(10, (rb - ra) / 400));
+            let Eb = 1 / (1 + Math.pow(10, (ra - rb) / 400));
+
+            let Sa = isTie ? 0.5 : (winnerStr === userA._id.toString() ? 1 : 0);
+            let Sb = isTie ? 0.5 : (winnerStr === userB._id.toString() ? 1 : 0);
+
+            let deltaA = ka * (Sa - Ea);
+            let deltaB = kb * (Sb - Eb);
+
+            match.ratingChange.p1.delta = deltaA;
+            match.ratingChange.p2.delta = deltaB;
+
+            userA.rating = Math.max(0, ra + deltaA);
+            userB.rating = Math.max(0, rb + deltaB);
+            await Promise.all([userA.save(), userB.save()]);
+        }
+    }
 
     match.winner = isTie ? null : winner;
     match.status = "FINISHED";
     match.resultDeclared = true;
     match.isTie = isTie;
-
     match.submissions = [subA, subB];
+
     await match.save();
 
     const io = getIO();
