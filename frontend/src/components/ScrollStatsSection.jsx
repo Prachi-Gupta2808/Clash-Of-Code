@@ -272,7 +272,7 @@ const VisualElo = () => (
     </div>
     <div className="mt-3 sm:mt-4 flex flex-col gap-1">
       <span className="text-2xl sm:text-3xl font-black text-white">1,420</span>
-      <span className="text-xs sm:text-sm text-neutral-400 font-mono">Specialist</span>
+      <span className="text-xs sm:text-sm text-neutral-400 font-mono">Master</span>
     </div>
     <div className="mt-4 sm:mt-6 w-28 sm:w-36 h-1.5 bg-neutral-800 rounded-full overflow-hidden mx-auto">
       <motion.div
