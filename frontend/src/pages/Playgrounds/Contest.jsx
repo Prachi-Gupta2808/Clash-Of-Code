@@ -167,12 +167,13 @@ const Contest = () => {
     setShowInput(false); 
 
     try {
-      const resp = await runCode({
-        language,
-        code,
-        input: customInput
-      });
-      setOutput(resp.data.output || "Execution Complete (No Output)");
+      // const resp = await runCode({
+      //   language,
+      //   code,
+      //   input: customInput
+      // });
+      // setOutput(resp.data.output || "Execution Complete (No Output)");
+      alert("AWS Credits exhausted :)") ;
     } catch (err) {
       setOutput("Error connecting to compiler server.");
       toast.error("Error connecting to server.");
@@ -187,23 +188,24 @@ const Contest = () => {
     setShowInput(false);
 
     try {
-      const response = await submitCode({
-        language,
-        code,
-        questionId: question?._id,
-        matchId,
-        submissionTimes: [new Date().toISOString()],
-      });
-      const resp = response.data;
+      // const response = await submitCode({
+      //   language,
+      //   code,
+      //   questionId: question?._id,
+      //   matchId,
+      //   submissionTimes: [new Date().toISOString()],
+      // });
+      alert("AWS Credits exhausted :)") ;
+      // const resp = response.data;
 
-      setOutput(resp.verdict || "Execution Complete");
+      // setOutput(resp.verdict || "Execution Complete");
 
-      if (resp.verdict === "AC") {
-        setWaiting(true);
-        toast.success("Accepted! Great job.");
-      } else if (resp.verdict === "WA") {
-        toast.error("Wrong Answer.");
-      }
+      // if (resp.verdict === "AC") {
+      //   setWaiting(true);
+      //   toast.success("Accepted! Great job.");
+      // } else if (resp.verdict === "WA") {
+      //   toast.error("Wrong Answer.");
+      // }
     } catch (err) {
       setOutput("Error connecting to compiler server.");
       toast.error("Submission failed.");
