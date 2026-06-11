@@ -18,18 +18,15 @@ import Contact from "./pages/Contact";
 import NotFound from "./pages/NotFound";
 
 function App() {
-  const { user, loading } = useAuth();
+  const { user } = useAuth();
   const [introDone, setIntroDone] = useState(false);
-
-  if (loading || !introDone) {
-    return <IntroLoader onFinish={() => setIntroDone(true)} />;
-  }
 
   const isLoggedIn = Boolean(user);
 
   return (
     <>
-      <GlobalCursor />
+      {!introDone && <IntroLoader onFinish={() => setIntroDone(true)} />}
+      {introDone && <GlobalCursor />}
       <Routes>
         <Route element={<AppLayout />}>
           <Route path="/" element={<Home />} />

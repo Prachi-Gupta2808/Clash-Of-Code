@@ -1,7 +1,6 @@
 import { useAuth } from "@/auth/AuthContext";
 import Footer from "@/components/Footer";
 import { socket } from "@/components/socket/socket";
-import { MaskContainer } from "@/components/ui/svg-mask-effect";
 import { lazy, Suspense, useEffect, useRef, useState } from "react";
 import { FaPlay } from "react-icons/fa6";
 import { useNavigate } from "react-router-dom";
@@ -14,6 +13,11 @@ const TwoPhotos = lazy(() => import("@/components/ProfileCards"));
 const ScrollReview = lazy(() => import("@/components/ScrollReview"));
 const ScrollStatsSection = lazy(() =>
   import("@/components/ScrollStatsSection")
+);
+const MaskContainer = lazy(() =>
+  import("@/components/ui/svg-mask-effect").then((m) => ({
+    default: m.MaskContainer,
+  }))
 );
 
 const LazySection = ({ children, placeholderHeight = "300px" }) => {
@@ -198,27 +202,29 @@ const Home = () => {
         <ExpandingPanels />
       </LazySection>
 
-      <div className="relative w-full min-h-screen">
-        <MaskContainer
-          revealText={
-            <p className="text-center text-[28px] sm:text-[40px] md:text-[50px] max-w-250 font-semibold text-black dark:text-white px-4">
-              Sharpen thinking under{" "}
-              <span style={{ color: "#F2613F" }}>pressure</span> with{" "}
-              <span style={{ color: "#F2613F" }}>live duels</span> and{" "}
-              <span style={{ color: "#F2613F" }}>fair rankings</span>.
-            </p>
-          }
-          size={20}
-          revealSize={500}
-          className="flex items-center justify-center"
-        >
-          <div className="space-y-10 text-[28px] sm:text-[40px] md:text-[50px] max-w-250 px-4">
-            Skip long contests — jump into a{" "}
-            <span className="font-bold text-(--c4)">quick duel</span> and win
-            fast.
-          </div>
-        </MaskContainer>
-      </div>
+      <LazySection placeholderHeight="500px">
+        <Suspense fallback={null}>
+          <MaskContainer
+            revealText={
+              <p className="text-center text-[28px] sm:text-[40px] md:text-[50px] max-w-250 font-semibold text-black dark:text-white px-4">
+                Sharpen thinking under{" "}
+                <span style={{ color: "#F2613F" }}>pressure</span> with{" "}
+                <span style={{ color: "#F2613F" }}>live duels</span> and{" "}
+                <span style={{ color: "#F2613F" }}>fair rankings</span>.
+              </p>
+            }
+            size={20}
+            revealSize={500}
+            className="flex items-center justify-center"
+          >
+            <div className="space-y-10 text-[28px] sm:text-[40px] md:text-[50px] max-w-250 px-4">
+              Skip long contests — jump into a{" "}
+              <span className="font-bold text-(--c4)">quick duel</span> and win
+              fast.
+            </div>
+          </MaskContainer>
+        </Suspense>
+      </LazySection>
 
       <LazySection placeholderHeight="400px">
         <ScrollStatsSection scrollRef={scrollRef} />

@@ -3,24 +3,22 @@ import LetterGlitch from "./LetterGlitch";
 
 export default function IntroLoader({ onFinish }) {
   const [expand, setExpand] = useState(false);
+  const [fadeOut, setFadeOut] = useState(false);
 
   useEffect(() => {
-    // start circle expansion after text is visible
     const t1 = setTimeout(() => setExpand(true), 2500);
-
-    // remove loader completely
-    const t2 = setTimeout(() => {
-      onFinish();
-    }, 3500);
+    const t2 = setTimeout(() => setFadeOut(true), 3000);
+    const t3 = setTimeout(() => onFinish(), 3600);
 
     return () => {
       clearTimeout(t1);
       clearTimeout(t2);
+      clearTimeout(t3);
     };
   }, [onFinish]);
 
   return (
-    <div className="intro-wrapper">
+    <div className={`intro-wrapper${fadeOut ? " intro-fade-out" : ""}`}>
       {/* Glitch background */}
       <div className="glitch-bg">
         <LetterGlitch
