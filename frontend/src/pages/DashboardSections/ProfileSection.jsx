@@ -1,3 +1,8 @@
+import { getDashboardData, uploadAvatar } from "@/api/auth";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import Cropper from "react-easy-crop";
+import { FiEdit } from "react-icons/fi";
+import { IoMdAdd, IoMdCheckmark, IoMdClose } from "react-icons/io";
 import {
   CartesianGrid,
   Line,
@@ -7,19 +12,7 @@ import {
   XAxis,
   YAxis,
 } from "recharts";
-import React, {
-  useMemo,
-  useState,
-  useRef,
-  useCallback,
-  useEffect,
-} from "react";
-import { IoMdAdd, IoMdClose, IoMdCheckmark } from "react-icons/io";
-import Cropper from "react-easy-crop";
 import ContributionGraph from "./Profile/ContributionGraph";
-import axios from "axios";
-import { FiEdit } from "react-icons/fi";
-import { getDashboardData } from "@/api/auth";
 
 const createImage = (url) =>
   new Promise((resolve, reject) => {
@@ -90,11 +83,7 @@ const ImageCropperModal = ({ imageSrc, onCancel }) => {
       const formData = new FormData();
       formData.append("image", croppedBlob, "profile.jpg");
 
-      await axios.post(
-        "http://localhost:5000/api/upload/avatar",
-        formData,
-        { withCredentials: true }
-      );
+      await uploadAvatar(formData);
 
       window.location.reload();
     } catch (err) {
@@ -108,7 +97,11 @@ const ImageCropperModal = ({ imageSrc, onCancel }) => {
       <div className="bg-[#0f1218] w-full max-w-lg rounded-2xl overflow-hidden border border-gray-800 shadow-2xl flex flex-col h-125">
         <div className="flex justify-between items-center p-4 border-b border-gray-800">
           <h3 className="text-white font-semibold text-lg">Edit Media</h3>
-          <button onClick={onCancel} disabled={isLoading} className="text-gray-400 hover:text-white transition cursor-pointer">
+          <button
+            onClick={onCancel}
+            disabled={isLoading}
+            className="text-gray-400 hover:text-white transition cursor-pointer"
+          >
             <IoMdClose size={24} />
           </button>
         </div>
@@ -140,10 +133,18 @@ const ImageCropperModal = ({ imageSrc, onCancel }) => {
             />
           </div>
           <div className="flex gap-3 justify-end pt-2">
-            <button onClick={onCancel} disabled={isLoading} className="px-4 py-2 rounded-lg text-sm font-medium text-gray-300 hover:text-white hover:bg-gray-800 transition">
+            <button
+              onClick={onCancel}
+              disabled={isLoading}
+              className="px-4 py-2 rounded-lg text-sm font-medium text-gray-300 hover:text-white hover:bg-gray-800 transition"
+            >
               Cancel
             </button>
-            <button onClick={handleSave} disabled={isLoading} className="px-6 py-2 rounded-lg text-sm font-medium bg-(--c4) text-white hover:bg-(--c3) cursor-pointer transition flex items-center gap-2">
+            <button
+              onClick={handleSave}
+              disabled={isLoading}
+              className="px-6 py-2 rounded-lg text-sm font-medium bg-(--c4) text-white hover:bg-(--c3) cursor-pointer transition flex items-center gap-2"
+            >
               {isLoading ? "Saving..." : "Apply"}
             </button>
           </div>
@@ -155,11 +156,13 @@ const ImageCropperModal = ({ imageSrc, onCancel }) => {
 
 const ProfileSection = ({ user }) => {
   const [selectedImage, setSelectedImage] = useState(null);
-  const [username, setUsername] = useState("@" + (user?.username || "username"));
+  const [username, setUsername] = useState(
+    "@" + (user?.username || "username")
+  );
   const [inputDisabled, setInputDisabled] = useState(true);
   const [isSavingUser, setIsSavingUser] = useState(false);
   const [isLoadingData, setIsLoadingData] = useState(true);
-  
+
   const fileInputRef = useRef(null);
   const usernameInputRef = useRef(null);
   const [ratingDeltas, setRatingDeltas] = useState([]);
@@ -211,19 +214,17 @@ const ProfileSection = ({ user }) => {
 
   const handleSaveUsername = async () => {
     if (!username || username.trim() === "@") return;
-    
+
     setIsSavingUser(true);
     try {
-      const cleanUsername = username.startsWith("@") ? username.slice(1) : username;
+      const cleanUsername = username.startsWith("@")
+        ? username.slice(1)
+        : username;
 
-      await axios.post(
-        "http://localhost:5000/api/change/username", 
-        { username: cleanUsername },
-        { withCredentials: true }
-      );
+      await API.post("/api/change/username", { username: cleanUsername });
 
       setInputDisabled(true);
-      window.location.reload(); 
+      window.location.reload();
     } catch (error) {
       console.error("Failed to update username", error);
       alert("Error updating username");
@@ -243,7 +244,7 @@ const ProfileSection = ({ user }) => {
   const ratingData = useMemo(() => {
     let currentRating = startingRating;
     return ratingDeltas.map((delta, index) => {
-      currentRating += delta; 
+      currentRating += delta;
       return {
         matchIndex: index,
         matchLabel: index === 0 ? "Start" : `Contest ${index}`,
@@ -260,11 +261,19 @@ const ProfileSection = ({ user }) => {
         <div className="bg-gray-900 border border-gray-700 p-3 rounded-lg shadow-xl">
           <p className="text-gray-400 text-xs mb-1">{data.matchLabel}</p>
           <p className="text-white font-bold text-base">
-            Rating: <span className="text-(--c4)">{Number(data.rating).toFixed(2)}</span>
+            Rating:{" "}
+            <span className="text-(--c4)">
+              {Number(data.rating).toFixed(2)}
+            </span>
           </p>
           {data.matchIndex !== 0 && (
-            <p className={`text-xs font-semibold mt-1 ${data.delta >= 0 ? "text-green-500" : "text-red-500"}`}>
-              Change: {data.delta > 0 ? "+" : ""}{Number(data.delta).toFixed(2)}
+            <p
+              className={`text-xs font-semibold mt-1 ${
+                data.delta >= 0 ? "text-green-500" : "text-red-500"
+              }`}
+            >
+              Change: {data.delta > 0 ? "+" : ""}
+              {Number(data.delta).toFixed(2)}
             </p>
           )}
         </div>
@@ -293,11 +302,20 @@ const ProfileSection = ({ user }) => {
                 </div>
                 <div className="absolute -inset-0.5 bg-linear-to-r from-orange-600 to-amber-600 rounded-full blur opacity-75 group-hover:opacity-100 transition duration-1000 group-hover:duration-200" />
                 <img
-                  src={user?.avatar || "https://riqieznxfrbdfcyfoxss.supabase.co/storage/v1/object/public/avatars/defaultPic.webp"}
+                  src={
+                    user?.avatar ||
+                    "https://riqieznxfrbdfcyfoxss.supabase.co/storage/v1/object/public/avatars/defaultPic.webp"
+                  }
                   alt={user?.fullName}
                   className="relative z-0 h-44 w-44 rounded-full object-cover border-4 border-neutral-900"
                 />
-                <input type="file" accept="image/*" className="hidden" ref={fileInputRef} onChange={onFileChange} />
+                <input
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  ref={fileInputRef}
+                  onChange={onFileChange}
+                />
               </label>
 
               <div className="text-center w-full flex flex-col items-center gap-1">
@@ -307,11 +325,15 @@ const ProfileSection = ({ user }) => {
                 <p className="text-xl text-(--c4) font-mono mt-1">
                   {user?.title || "Specialist"}
                 </p>
-                <div 
+                <div
                   className={`
                     group/edit relative flex items-center justify-center gap-2 
                     px-3 py-1.5 rounded-lg transition-all duration-200
-                    ${!inputDisabled ? "bg-neutral-800 w-full max-w-60 border border-neutral-700" : "hover:bg-neutral-800/50 cursor-pointer"}
+                    ${
+                      !inputDisabled
+                        ? "bg-neutral-800 w-full max-w-60 border border-neutral-700"
+                        : "hover:bg-neutral-800/50 cursor-pointer"
+                    }
                   `}
                   onClick={inputDisabled ? handleEditClick : undefined}
                 >
@@ -320,7 +342,11 @@ const ProfileSection = ({ user }) => {
                     type="text"
                     className={`
                       text-sm font-medium outline-none bg-transparent text-center w-full
-                      ${inputDisabled ? "text-gray-400 cursor-pointer pointer-events-none" : "text-white"}
+                      ${
+                        inputDisabled
+                          ? "text-gray-400 cursor-pointer pointer-events-none"
+                          : "text-white"
+                      }
                     `}
                     onChange={handleUserChange}
                     onKeyDown={handleKeyDown}
@@ -330,27 +356,33 @@ const ProfileSection = ({ user }) => {
                   />
                   <div className="flex items-center">
                     {inputDisabled ? (
-                      <FiEdit 
-                        size={14} 
-                        className="text-gray-500 opacity-0 group-hover/edit:opacity-100 transition-opacity -ml-4" 
+                      <FiEdit
+                        size={14}
+                        className="text-gray-500 opacity-0 group-hover/edit:opacity-100 transition-opacity -ml-4"
                       />
                     ) : (
                       <div className="flex gap-1 ml-1 pl-2 border-l border-neutral-700">
-                        <button 
+                        <button
                           className="cursor-pointer text-emerald-500 hover:text-emerald-400 transition p-1 hover:bg-neutral-700 rounded-md"
-                          onClick={(e) => { e.stopPropagation(); handleSaveUsername(); }}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleSaveUsername();
+                          }}
                           disabled={isSavingUser}
                           title="Save"
                         >
-                           <IoMdCheckmark size={16} />
+                          <IoMdCheckmark size={16} />
                         </button>
-                        <button 
+                        <button
                           className="cursor-pointer text-rose-500 hover:text-rose-400 transition p-1 hover:bg-neutral-700 rounded-md"
-                          onClick={(e) => { e.stopPropagation(); handleCancelEdit(); }}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleCancelEdit();
+                          }}
                           disabled={isSavingUser}
                           title="Cancel"
                         >
-                           <IoMdClose size={16} />
+                          <IoMdClose size={16} />
                         </button>
                       </div>
                     )}
@@ -368,11 +400,15 @@ const ProfileSection = ({ user }) => {
                   <span className="text-gray-500">Rating</span>
                 </div>
                 <div className="text-center">
-                  <span className="block font-bold text-lg text-white">{userSubmissionCount}</span>
+                  <span className="block font-bold text-lg text-white">
+                    {userSubmissionCount}
+                  </span>
                   <span className="text-gray-500">Duels Played</span>
                 </div>
                 <div className="text-center">
-                  <span className="block font-bold text-lg text-white">Top 5%</span>
+                  <span className="block font-bold text-lg text-white">
+                    Top 5%
+                  </span>
                   <span className="text-gray-500">Rank</span>
                 </div>
               </div>
@@ -387,11 +423,39 @@ const ProfileSection = ({ user }) => {
             <div className="flex-1 min-h-62.5 w-full">
               <ResponsiveContainer width="100%" height="100%">
                 <LineChart data={ratingData}>
-                  <CartesianGrid stroke="#333" strokeDasharray="3 3" vertical={false} />
-                  <XAxis dataKey="matchIndex" stroke="#6b7280" tickLine={false} axisLine={false} tick={{ fontSize: 12 }} dy={10} tickFormatter={(val) => (val === 0 ? "" : `#${val}`)} />
-                  <YAxis stroke="#6b7280" tickLine={false} axisLine={false} tick={{ fontSize: 12 }} domain={[800, "auto"]} />
-                  <Tooltip content={<CustomGraphTooltip />} cursor={{ stroke: "#374151", strokeWidth: 1 }} />
-                  <Line type="monotone" dataKey="rating" stroke="#d95b3d" strokeWidth={3} dot={{ r: 4, fill: "#d95b3d", strokeWidth: 0 }} activeDot={{ r: 8, stroke: "#fff", strokeWidth: 2 }} />
+                  <CartesianGrid
+                    stroke="#333"
+                    strokeDasharray="3 3"
+                    vertical={false}
+                  />
+                  <XAxis
+                    dataKey="matchIndex"
+                    stroke="#6b7280"
+                    tickLine={false}
+                    axisLine={false}
+                    tick={{ fontSize: 12 }}
+                    dy={10}
+                    tickFormatter={(val) => (val === 0 ? "" : `#${val}`)}
+                  />
+                  <YAxis
+                    stroke="#6b7280"
+                    tickLine={false}
+                    axisLine={false}
+                    tick={{ fontSize: 12 }}
+                    domain={[800, "auto"]}
+                  />
+                  <Tooltip
+                    content={<CustomGraphTooltip />}
+                    cursor={{ stroke: "#374151", strokeWidth: 1 }}
+                  />
+                  <Line
+                    type="monotone"
+                    dataKey="rating"
+                    stroke="#d95b3d"
+                    strokeWidth={3}
+                    dot={{ r: 4, fill: "#d95b3d", strokeWidth: 0 }}
+                    activeDot={{ r: 8, stroke: "#fff", strokeWidth: 2 }}
+                  />
                 </LineChart>
               </ResponsiveContainer>
             </div>
