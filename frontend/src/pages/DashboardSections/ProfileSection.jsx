@@ -13,7 +13,8 @@ import {
   YAxis,
 } from "recharts";
 import ContributionGraph from "./Profile/ContributionGraph";
-
+const fallbackAvatar =
+  "https://cutiedp.com/wp-content/uploads/2025/10/anime-orange-pfp.webp";
 const createImage = (url) =>
   new Promise((resolve, reject) => {
     const image = new Image();
@@ -302,12 +303,12 @@ const ProfileSection = ({ user }) => {
                 </div>
                 <div className="absolute -inset-0.5 bg-linear-to-r from-orange-600 to-amber-600 rounded-full blur opacity-75 group-hover:opacity-100 transition duration-1000 group-hover:duration-200" />
                 <img
-                  src={
-                    user?.avatar ||
-                    "https://riqieznxfrbdfcyfoxss.supabase.co/storage/v1/object/public/avatars/defaultPic.webp"
-                  }
+                  src={user?.avatar || fallbackAvatar}
+                  onError={(e) => {
+                    e.currentTarget.src = fallbackAvatar;
+                  }}
                   alt={user?.fullName}
-                  className="relative z-0 h-44 w-44 rounded-full object-cover border-4 border-neutral-900"
+                  className="h-44 w-44 rounded-full object-cover border-4 border-neutral-900"
                 />
                 <input
                   type="file"

@@ -115,9 +115,16 @@ const Home = () => {
             {isLoggedIn ? (
               <div className="relative">
                 <img
-                  src={user?.avatar || "/default-avatar.png"}
+                  src={
+                    user?.avatar ||
+                    "https://cutiedp.com/wp-content/uploads/2025/10/anime-orange-pfp.webp"
+                  }
                   alt="Profile"
                   className="w-10 h-10 sm:w-12 sm:h-12 rounded-full cursor-pointer object-cover border-2 border-(--c4) shadow-[0_0_15px_rgba(242,97,63,0.6)]"
+                  onError={(e) => {
+                    e.currentTarget.src =
+                      "https://cutiedp.com/wp-content/uploads/2025/10/anime-orange-pfp.webp";
+                  }}
                   onClick={() => setProfileOpen((p) => !p)}
                 />
                 {profileOpen && (
