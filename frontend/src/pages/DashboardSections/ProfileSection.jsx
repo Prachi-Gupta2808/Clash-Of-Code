@@ -301,7 +301,7 @@ const ProfileSection = ({ user }) => {
                 <div className="darkCircle absolute inset-0 opacity-0 group-hover:opacity-100 bg-black/40 backdrop-blur-[5px] z-10 rounded-full flex justify-center items-center duration-300">
                   <IoMdAdd className="text-orange-500 text-5xl scale-0 opacity-0 group-hover:scale-100 group-hover:opacity-100 duration-200 drop-shadow-[0_0_8px_rgba(249,115,22,0.5)]" />
                 </div>
-                <div className="absolute -inset-0.5 bg-linear-to-r from-orange-600 to-amber-600 rounded-full blur opacity-75 group-hover:opacity-100 transition duration-1000 group-hover:duration-200" />
+                <div className="absolute -inset-0.5 rounded-full blur opacity-75 group-hover:opacity-100 transition duration-1000 group-hover:duration-200" />
                 <img
                   src={user?.avatar || fallbackAvatar}
                   onError={(e) => {
