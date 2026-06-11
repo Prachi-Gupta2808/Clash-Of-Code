@@ -1,12 +1,13 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import { useNavigate } from "react-router-dom";
-import { X, Search } from "lucide-react";
 import { useAuth } from "@/auth/AuthContext";
 import { socket } from "@/components/socket/socket";
-
+import { AnimatePresence, motion } from "framer-motion";
+import { Search, X } from "lucide-react";
+import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
+const fallbackAvatar =
+  "https://cutiedp.com/wp-content/uploads/2025/10/anime-orange-pfp.webp";
 const TIPS = [
   "Pro Tip: Always check for edge cases like empty arrays or null values.",
   "Did you know? Python was named after Monty Python's Flying Circus.",
@@ -40,10 +41,10 @@ const WaitingForOpponent = ({ mode }) => {
   };
 
   const handleCancel = () => {
-    socket.emit("CANCEL" , {
-      userId : user._id,
-      mode : mode
-    })
+    socket.emit("CANCEL", {
+      userId: user._id,
+      mode: mode,
+    });
     navigate("/");
   };
 
@@ -79,11 +80,11 @@ const WaitingForOpponent = ({ mode }) => {
 
         <div className="relative z-20 bg-black p-2 rounded-full border-2 border-[#F2613F] shadow-[0_0_30px_rgba(242,97,63,0.4)]">
           <img
-            src={
-              user?.avatar ||
-              "https://riqieznxfrbdfcyfoxss.supabase.co/storage/v1/object/public/avatars/defaultPic.webp"
-            }
+            src={user?.avatar || fallbackAvatar}
             alt="Your Avatar"
+            onError={(e) => {
+              e.currentTarget.src = fallbackAvatar;
+            }}
             className="w-20 h-20 rounded-full object-cover"
           />
         </div>

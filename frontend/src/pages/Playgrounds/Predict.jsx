@@ -1,18 +1,19 @@
 import { getInformation, submitOutput } from "@/api/auth";
 import { useAuth } from "@/auth/AuthContext";
 import { socket } from "@/components/socket/socket";
-import { useToast } from "@/components/ToastProvider"; 
+import { useToast } from "@/components/ToastProvider";
 import Editor from "@monaco-editor/react";
 import {
+  AlertCircle,
   ArrowRight,
   CheckCircle2,
+  Clock,
   Code2,
   HelpCircle,
   Loader2,
   RotateCcw,
   Terminal,
   Trophy,
-  AlertCircle
 } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
@@ -22,7 +23,7 @@ const Predict = () => {
   const { user, loading } = useAuth();
   const { matchId } = useParams();
   const navigate = useNavigate();
-  const { toast } = useToast(); 
+  const { toast } = useToast();
 
   const [questions, setQuestions] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -35,7 +36,7 @@ const Predict = () => {
   const [waiting, setWaiting] = useState(false);
   const [timeLeft, setTimeLeft] = useState(0);
   const [submitting, setSubmitting] = useState(false);
-  const [matchResult, setMatchResult] = useState(null); 
+  const [matchResult, setMatchResult] = useState(null);
 
   const latestState = useRef({ userAnswers, answerTimestamps });
 
@@ -49,9 +50,10 @@ const Predict = () => {
     socket.emit("JOIN_ROOM", matchId);
 
     socket.on("MATCH_RESULT", (data) => {
-      const myScore = data.scores.find((s) => s.userId === user._id)?.score ?? 0;
+      const myScore =
+        data.scores.find((s) => s.userId === user._id)?.score ?? 0;
       setFinalScore(myScore);
-      setMatchResult({ isTie: data.isTie, winner: data.winner }); 
+      setMatchResult({ isTie: data.isTie, winner: data.winner });
       setIsSubmitted(true);
       setWaiting(false);
     });
@@ -75,8 +77,11 @@ const Predict = () => {
       const remaining = Math.floor((new Date(endTime) - Date.now()) / 1000);
       if (remaining <= 0) {
         clearInterval(interval);
-        const { userAnswers: currentAnswers, answerTimestamps: currentTimestamps } = latestState.current;
-        handleSubmitTest(true, currentAnswers, currentTimestamps); 
+        const {
+          userAnswers: currentAnswers,
+          answerTimestamps: currentTimestamps,
+        } = latestState.current;
+        handleSubmitTest(true, currentAnswers, currentTimestamps);
       } else {
         setTimeLeft(remaining);
       }
@@ -120,7 +125,11 @@ const Predict = () => {
     if (!isLastQuestion) setCurrentIndex((prev) => prev + 1);
   };
 
-  const handleSubmitTest = async (auto = false, answers = userAnswers, timestamps = answerTimestamps) => {
+  const handleSubmitTest = async (
+    auto = false,
+    answers = userAnswers,
+    timestamps = answerTimestamps
+  ) => {
     if (submitting) return;
     setSubmitting(true);
 
@@ -157,33 +166,43 @@ const Predict = () => {
     return (
       <div className="flex w-full h-screen bg-[#0f0f0f] text-gray-300 font-sans items-center justify-center">
         <div className="bg-[#18181b] p-12 rounded-2xl border border-[#27272a] text-center shadow-2xl max-w-lg w-full relative overflow-hidden">
-          <div className={`absolute top-0 left-1/2 -translate-x-1/2 w-full h-20 blur-[100px] opacity-20 pointer-events-none ${isTie ? 'bg-blue-500' : 'bg-(--c4)'}`}></div>
-          
+          <div
+            className={`absolute top-0 left-1/2 -translate-x-1/2 w-full h-20 blur-[100px] opacity-20 pointer-events-none ${
+              isTie ? "bg-blue-500" : "bg-(--c4)"
+            }`}
+          ></div>
+
           {isTie ? (
-             <AlertCircle className="w-20 h-20 text-blue-500 mx-auto mb-6 drop-shadow-lg" />
+            <AlertCircle className="w-20 h-20 text-blue-500 mx-auto mb-6 drop-shadow-lg" />
           ) : (
-             <Trophy className="w-20 h-20 text-yellow-500 mx-auto mb-6 drop-shadow-lg" />
+            <Trophy className="w-20 h-20 text-yellow-500 mx-auto mb-6 drop-shadow-lg" />
           )}
-          
+
           <h1 className="text-4xl font-bold text-white mb-2 tracking-tight">
             {isTie ? "Match Drawn" : "Test Completed"}
           </h1>
           <p className="text-gray-400 mb-8 text-lg">
-            {isTie ? "Time's up! It's a draw." : "You have successfully submitted your answers."}
+            {isTie
+              ? "Time's up! It's a draw."
+              : "You have successfully submitted your answers."}
           </p>
-          
+
           <div className="bg-[#0f0f0f] rounded-xl p-6 mb-8 border border-[#27272a]">
             <p className="text-sm text-gray-500 uppercase tracking-widest font-semibold mb-2">
               Final Score
             </p>
-            <div className={`text-6xl font-mono font-bold ${isTie ? 'text-blue-400' : 'text-white'}`}>
+            <div
+              className={`text-6xl font-mono font-bold ${
+                isTie ? "text-blue-400" : "text-white"
+              }`}
+            >
               {finalScore}{" "}
               <span className="text-3xl text-gray-600">
                 / {questions.length}
               </span>
             </div>
           </div>
-          
+
           <button
             onClick={() => navigate(`/analytics/${matchId}`)}
             className="w-full py-4 bg-[#27272a] hover:bg-[#3f3f46] text-white rounded-xl font-bold text-lg transition-all flex items-center justify-center gap-2 cursor-pointer"
@@ -253,14 +272,16 @@ const Predict = () => {
             </span>
           </div>
           <div className="flex items-center gap-4">
-             <div className="flex items-center gap-2 text-xs font-medium text-gray-500 bg-[#27272a] px-3 py-1.5 rounded-md border border-[#3f3f46]">
-               <Clock className="w-3.5 h-3.5" />
-               <span className="font-mono">
-                 {timeLeft > 0
-                   ? `${Math.floor(timeLeft / 60)}:${(timeLeft % 60).toString().padStart(2, "0")}`
-                   : "00:00"}
-               </span>
-             </div>
+            <div className="flex items-center gap-2 text-xs font-medium text-gray-500 bg-[#27272a] px-3 py-1.5 rounded-md border border-[#3f3f46]">
+              <Clock className="w-3.5 h-3.5" />
+              <span className="font-mono">
+                {timeLeft > 0
+                  ? `${Math.floor(timeLeft / 60)}:${(timeLeft % 60)
+                      .toString()
+                      .padStart(2, "0")}`
+                  : "00:00"}
+              </span>
+            </div>
             <div
               className={`text-xs px-2 py-1.5 rounded border ${
                 userAnswers[currentIndex]
