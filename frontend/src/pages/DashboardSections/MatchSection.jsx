@@ -3,6 +3,7 @@
 import { CardBody, CardContainer, CardItem } from "@/components/ui/3d-card";
 import { useEffect, useState } from "react";
 import { getRecentMatches } from "../../api/auth";
+import userAvatar from "/user_fallback_avatar.png";
 
 const themeLabels = {
   contest: "Code Knockout",
@@ -58,11 +59,17 @@ const MatchSection = () => {
                       src={match.you.avatar}
                       alt={match.you.username}
                       className="w-14 h-14 rounded-full object-cover absolute left-0 shadow-lg"
+                      onError={(e) => {
+                        e.currentTarget.src = userAvatar;
+                      }}
                     />
                     <img
                       src={match.opponent.avatar}
                       alt={match.opponent.username}
                       className="w-14 h-14 rounded-full object-cover absolute left-8 shadow-lg"
+                      onError={(e) => {
+                        e.currentTarget.src = userAvatar;
+                      }}
                     />
                   </div>
                 </CardItem>

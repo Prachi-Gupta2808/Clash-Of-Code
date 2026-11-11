@@ -13,7 +13,7 @@ import {
   YAxis,
 } from "recharts";
 import ContributionGraph from "./Profile/ContributionGraph";
-import fallbackAvatar from "/public/user_fallback_avatar.png";
+import fallbackAvatar from "/user_fallback_avatar.png";
 
 const createImage = (url) =>
   new Promise((resolve, reject) => {
