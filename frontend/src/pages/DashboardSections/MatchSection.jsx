@@ -51,7 +51,7 @@ const MatchSection = () => {
         ) : (
           matches.map((match, index) => (
             <CardContainer key={index} className="w-full">
-              <CardBody className="bg-gray-50 dark:bg-black border border-black/10 dark:border-white/[0.15] rounded-xl p-6 w-full h-full">
+              <CardBody className="bg-gray-50 dark:bg-black border border-black/10 dark:border-white/15 rounded-xl p-6 w-full h-full">
                 <CardItem translateZ={80} className="mt-6">
                   <div className="flex justify-center relative w-24 h-12">
                     <img

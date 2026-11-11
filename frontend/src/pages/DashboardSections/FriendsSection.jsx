@@ -12,6 +12,7 @@ import {
 } from "../../api/auth";
 import { socket } from "../../components/socket/socket";
 import peopleSearchSvg from "/people_search.svg";
+import fallbackAvatar from "/user_fallback_avatar.png";
 
 const panelsData = [
   {
@@ -203,9 +204,9 @@ const FriendsSection = () => {
 
   const displayList = search.trim()
     ? searchResults.filter(
-        (u) =>
-          !friends.some((f) => f._id === u._id) && !pendingSent.includes(u._id)
-      )
+      (u) =>
+        !friends.some((f) => f._id === u._id) && !pendingSent.includes(u._id)
+    )
     : friends;
 
   if (isInitialLoading) {
@@ -246,8 +247,8 @@ const FriendsSection = () => {
           <p className="mt-4 text-xl text-neutral-400">
             {search.trim()
               ? "Search users to send requests"
-              : friends.length > 0 
-                ? "Your friends, challenge them!" 
+              : friends.length > 0
+                ? "Your friends, challenge them!"
                 : "Search for users to add as friends!"}
           </p>
         </div>
@@ -257,10 +258,10 @@ const FriendsSection = () => {
             <p className="text-white text-center col-span-full">Loading...</p>
           ) : displayList.length === 0 ? (
             <div className="col-span-full flex flex-col items-center justify-center min-h-[40vh] gap-4">
-              <img 
-                src={typeof peopleSearchSvg === 'string' ? peopleSearchSvg : peopleSearchSvg?.src} 
-                alt="No users" 
-                className="w-48 h-48 opacity-50" 
+              <img
+                src={typeof peopleSearchSvg === 'string' ? peopleSearchSvg : peopleSearchSvg?.src}
+                alt="No users"
+                className="w-48 h-48 opacity-50"
               />
               <p className="text-neutral-400 text-center">
                 {search.trim() ? "No users found" : "No friends yet. Search to add some!"}
@@ -290,9 +291,12 @@ const FriendsSection = () => {
 
                   <CardItem translateZ={100} className="w-full mt-4">
                     <img
-                      src={user.avatar}
+                      src={user.avatar || fallbackAvatar}
                       alt={user.username}
                       className="h-56 w-full object-cover rounded-xl"
+                      onError={(e) => {
+                        e.currentTarget.src = fallbackAvatar;
+                      }}
                     />
                   </CardItem>
 

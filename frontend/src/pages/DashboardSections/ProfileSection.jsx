@@ -13,8 +13,8 @@ import {
   YAxis,
 } from "recharts";
 import ContributionGraph from "./Profile/ContributionGraph";
-const fallbackAvatar =
-  "https://cutiedp.com/wp-content/uploads/2025/10/anime-orange-pfp.webp";
+import fallbackAvatar from "/public/user_fallback_avatar.png";
+
 const createImage = (url) =>
   new Promise((resolve, reject) => {
     const image = new Image();

@@ -6,6 +6,7 @@ import { FaPlay } from "react-icons/fa6";
 import { useNavigate } from "react-router-dom";
 import { logout } from "../api/auth";
 import "./HomePage.css";
+import fallbackAvatar from "/user_fallback_avatar.png"
 
 // Lazy loaded components
 const ExpandingPanels = lazy(() => import("@/components/ExpandingPanels"));
@@ -125,8 +126,7 @@ const Home = () => {
                   alt="Profile"
                   className="w-10 h-10 sm:w-12 sm:h-12 rounded-full cursor-pointer object-cover border-2 border-(--c4) shadow-[0_0_15px_rgba(242,97,63,0.6)]"
                   onError={(e) => {
-                    e.currentTarget.src =
-                      "https://cutiedp.com/wp-content/uploads/2025/10/anime-orange-pfp.webp";
+                    e.currentTarget.src = fallbackAvatar
                   }}
                   onClick={() => setProfileOpen((p) => !p)}
                 />
